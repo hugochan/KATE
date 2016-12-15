@@ -5,6 +5,7 @@ Created on Nov, 2016
 
 '''
 
+import os
 import numpy as np
 from utils import *
 from ae import AutoEncoder
@@ -34,6 +35,7 @@ def main():
     try:
         corpus_path = sys.argv[1]
         n_topics = int(sys.argv[2])
+        out_path = sys.argv[3]
     except:
         print usage
         sys.exit()
@@ -41,18 +43,19 @@ def main():
     corpus = load_corpus(corpus_path)
 
     vocab, docs = corpus['vocab'], corpus['docs']
+    # docs = dict(docs.items()[:5000])
     n_vocab = len(vocab)
     n_docs = len(docs)
 
     doc_names = docs.keys()
     X_docs = np.r_[[vecnorm(doc2vec(x, n_vocab), 'logmax1', 0) for x in docs.values()]]
-    # X_docs = np.r_[[doc2vec(x, n_vocab) for x in docs]]
 
 
+    # feature_weights = vocab_weights_tfidf(vocab, corpus['word_freq'], docs.values(), max_=100., ratio=.6)
     feature_weights = vocab_weights(vocab, corpus['word_freq'], max_=100., ratio=.75)
     feature_weights = vecnorm(feature_weights, 'prob', 0)
 
-    X_docs_noisy = corrupted_matrix(X_docs, corruption_ratio=.25)
+    X_docs_noisy = corrupted_matrix(X_docs, corruption_ratio=.1)
 
 
     np.random.seed(0)
@@ -73,26 +76,26 @@ def main():
     print "training samples: %s" % X_train.shape[0]
     print "test samples: %s" % X_test.shape[0]
 
-    X_train_noisy = X_docs_noisy[train_idx]
-    X_test_noisy = X_docs_noisy[test_idx]
-    # X_train_noisy = X_train
-    # X_test_noisy = X_test
+    # X_train_noisy = X_docs_noisy[train_idx]
+    # X_test_noisy = X_docs_noisy[test_idx]
+    X_train_noisy = X_train
+    X_test_noisy = X_test
     weights = None
     # try:
     #     import json
     #     topic_vocab_dist = json.load(open(sys.argv[3], 'r'))
-    #     weights = init_weights(topic_vocab_dist, vocab)
+    #     weights = init_weights2(topic_vocab_dist, vocab)
     # except Exception as e:
     #     print e
     #     weights = np.random.randn(n_vocab, n_topics) / np.sqrt(n_vocab)
-
-    ae = AutoEncoder(dim=n_topics, nb_epoch=100, batch_size=100)
+    # model_save_path = 'mod_files/ae.hdf5'
+    ae = AutoEncoder(dim=n_topics, nb_epoch=120, batch_size=100, model_save_path=os.path.join(out_path, 'model.hdf5'))
     try:
         ae.autoencoder = ae.load_mod(sys.argv[3])
         ae.encoder = ae.load_mod(sys.argv[4])
         ae.decoder = ae.load_mod(sys.argv[5])
     except:
-        ae.fit([X_train_noisy, X_train], [X_test_noisy, X_test], feature_weights=feature_weights, init_weights=weights)
+        ae.fit([X_train_noisy, X_train], [X_test_noisy, X_test], feature_weights=feature_weights)
         # ae.save_all([[ae.autoencoder, 'autoenoder_nbias.mod'], [ae.encoder, 'encoder_nbias.mod'], [ae.decoder, 'decoder_nbias.mod']])
 
     # note that we take them from the *test* set
@@ -101,7 +104,7 @@ def main():
 
     # print_topics(topics)
     doc_codes = ae.encoder.predict(X_docs)
-    save_json(dict(zip(doc_names, doc_codes.tolist())), 'doc_codes_logmax1.txt')
+    save_json(dict(zip(doc_names, doc_codes.tolist())), os.path.join(out_path, 'doc_codes.txt'))
     import pdb;pdb.set_trace()
     # topics = get_topics(ae, revdict(vocab), topn=10)
 

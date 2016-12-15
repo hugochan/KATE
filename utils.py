@@ -24,8 +24,6 @@ def load_stopwords(file):
                 stop_words.append(line.strip('\n '))
     except Exception as e:
         raise e
-    else:
-        f.close()
 
     return stop_words
 
@@ -53,8 +51,6 @@ def save_json(data, file):
             json.dump(data, datafile)
     except Exception as e:
         raise e
-    else:
-        datafile.close()
 
 def load_json(file):
     try:
@@ -62,8 +58,6 @@ def load_json(file):
             data = json.load(datafile)
     except Exception as e:
         raise e
-    else:
-        datafile.close()
 
     return data
 
@@ -105,8 +99,6 @@ def load_data(corpus_path):
         except Exception as e:
             print e
             sys.exit()
-        else:
-            fp.close()
 
     return word_freq, doc_word_freq
 
@@ -165,7 +157,7 @@ def vecnorm(vec, norm, epsilon=1e-3):
         elif norm == 'max1':
             veclen = np.max(vec) + epsilon
         elif norm == 'logmax1':
-            vec = np.log(1. + vec)
+            vec = np.log10(1. + vec)
             veclen = np.max(vec) + epsilon
         if veclen > 0.0:
             return (vec + epsilon) / veclen
@@ -179,6 +171,13 @@ def doc2vec(doc, dim):
 
     return vec
 
+def idf(docs, dim):
+    vec = np.zeros((dim, 1))
+    for each_doc in docs:
+        for idx in each_doc.keys():
+            vec[int(idx)] += 1
+    return np.log10(1. + len(docs) / vec)
+
 def vocab_weights(vocab_dict, word_freq, max_=100., ratio=.75):
     weights = np.zeros((len(vocab_dict), 1))
     for word, idx in vocab_dict.items():
@@ -187,6 +186,18 @@ def vocab_weights(vocab_dict, word_freq, max_=100., ratio=.75):
     weights = np.clip(weights / max_, 0., 1.)
 
     return np.power(weights, ratio)
+
+def vocab_weights_tfidf(vocab_dict, word_freq, docs, max_=100., ratio=.75):
+    dim = len(vocab_dict)
+    tf_vec = np.zeros((dim, 1))
+    for word, idx in vocab_dict.items():
+        tf_vec[idx] = 1. + np.log10(word_freq[word]) # log normalization
+
+    idf_vec = idf(docs, dim)
+    tfidf_vec = tf_vec * idf_vec
+
+    tfidf_vec = np.clip(tfidf_vec, 0., 4.)
+    return np.power(tfidf_vec, ratio)
 
 def revdict(d):
     """
@@ -214,6 +225,14 @@ def init_weights(topic_vocab_dist, vocab_dict, epsilon=1e-5):
 
     return weights
 
+def init_weights2(topic_vocab, vocab_dict, epsilon=1e-5):
+    weights = np.zeros((len(vocab_dict), len(topic_vocab)))
+    for i in range(len(topic_vocab)):
+        for vocab in topic_vocab[i]:
+            weights[vocab_dict[vocab]][i] = 1. / len(topic_vocab[i]) + epsilon
+
+    return weights
+
 
 def get_20news_doc_labels(corpus_path):
     dirs = os.listdir(corpus_path)
@@ -229,6 +248,13 @@ def get_20news_doc_labels(corpus_path):
     return doc_labels
 
 
+def get_8k_doc_labels(doc_names):
+    doc_labels = {}
+    for doc in doc_names:
+        doc_labels[doc] = doc.split('-')[-1].replace('.txt', '')
+
+    return doc_labels
+
 if __name__ == "__main__":
     usage = 'python utils.py [corpus_path] [out_corpus]'
     try:
@@ -238,5 +264,11 @@ if __name__ == "__main__":
         print usage
         sys.exit()
 
-    construct_corpus(corpus_path, out_corpus)
+    # construct_corpus(corpus_path, out_corpus)
     # corpus = load_corpus(corpus_path)
+    # doc_labels = get_8k_doc_labels(corpus['docs'].keys())
+    # save_json(doc_labels, out_corpus)
+
+    # bank_fyear = load_json(corpus_path)
+    # doc_labels = load_json(out_corpus)
+    # for doc, bname in doc_labels.items():    doc_fails[doc]=0 if bank_fyear[bname] == 'NA' else 1
