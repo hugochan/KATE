@@ -30,17 +30,24 @@ def print_topics(topics):
         print
 
 def main():
-    import sys
-    usage = 'python run_ae.py [corpus_path] [n_topics]'
-    try:
-        corpus_path = sys.argv[1]
-        n_topics = int(sys.argv[2])
-        out_path = sys.argv[3]
-    except:
-        print usage
-        sys.exit()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('corpus_dir', type=str, help='path to the corpus dir')
+    parser.add_argument('n_dim', type=int, help='num of dimensions')
+    parser.add_argument('-ne', '--n_epoch', type=int, default=100, help='num of epoches (default 100)')
+    parser.add_argument('-bs', '--batch_size', type=int, default=100, help='batch size (default 100)')
+    parser.add_argument('-o', '--output', type=str, default='./', help='path to the output dir (default current dir)')
+    parser.add_argument('-l', '--load', type=str, help='path to the pretrained model')
+    args = parser.parse_args()
 
-    corpus = load_corpus(corpus_path)
+    corpus_dir = args.corpus_dir
+    n_dim = args.n_dim
+    n_epoch = args.n_epoch
+    batch_size = args.batch_size
+    out_path = args.output
+    model_path = args.load
+
+    corpus = load_corpus(corpus_dir)
 
     vocab, docs = corpus['vocab'], corpus['docs']
     # docs = dict(docs.items()[:5000])
@@ -65,13 +72,6 @@ def main():
     X_train = X_docs[train_idx]
     X_test = X_docs[test_idx]
 
-    # X_train = np.random.randn(n_docs, n_vocab)
-    # X_train[X_train < 0] = 0
-    # X_train /= np.sum(X_train, axis=1).reshape(n_docs, 1)
-    # X_test = np.random.randn(n_docs, n_vocab)
-    # X_test[X_test < 0] = 0
-    # X_test /= np.sum(X_test, axis=1).reshape(n_docs, 1)
-
     print "total samples: %s" % n_docs
     print "training samples: %s" % X_train.shape[0]
     print "test samples: %s" % X_test.shape[0]
@@ -80,29 +80,10 @@ def main():
     # X_test_noisy = X_docs_noisy[test_idx]
     X_train_noisy = X_train
     X_test_noisy = X_test
-    weights = None
-    # try:
-    #     import json
-    #     topic_vocab_dist = json.load(open(sys.argv[3], 'r'))
-    #     weights = init_weights2(topic_vocab_dist, vocab)
-    # except Exception as e:
-    #     print e
-    #     weights = np.random.randn(n_vocab, n_topics) / np.sqrt(n_vocab)
-    # model_save_path = 'mod_files/ae.hdf5'
-    ae = AutoEncoder(dim=n_topics, nb_epoch=120, batch_size=100, model_save_path=os.path.join(out_path, 'model.hdf5'))
-    try:
-        ae.autoencoder = ae.load_mod(sys.argv[3])
-        ae.encoder = ae.load_mod(sys.argv[4])
-        ae.decoder = ae.load_mod(sys.argv[5])
-    except:
-        ae.fit([X_train_noisy, X_train], [X_test_noisy, X_test], feature_weights=feature_weights)
-        # ae.save_all([[ae.autoencoder, 'autoenoder_nbias.mod'], [ae.encoder, 'encoder_nbias.mod'], [ae.decoder, 'decoder_nbias.mod']])
 
-    # note that we take them from the *test* set
-    # encoded_X = ae.encoder.predict(X_test_noisy)
-    # decoded_X = ae.decoder.predict(encoded_X)
+    ae = AutoEncoder(dim=n_dim, nb_epoch=n_epoch, batch_size=batch_size, model_save_path=os.path.join(out_path, 'model.hdf5'))
+    ae.fit([X_train_noisy, X_train], [X_test_noisy, X_test], feature_weights=feature_weights)
 
-    # print_topics(topics)
     doc_codes = ae.encoder.predict(X_docs)
     save_json(dict(zip(doc_names, doc_codes.tolist())), os.path.join(out_path, 'doc_codes.txt'))
     import pdb;pdb.set_trace()
