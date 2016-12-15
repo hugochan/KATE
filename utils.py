@@ -61,6 +61,12 @@ def load_json(file):
 
     return data
 
+def get_all_files(corpus_path, recursive=False):
+    if recursive:
+        return [os.path.join(root, file) for root, dirnames, filenames in os.walk(corpus_path) for file in filenames if not file.startswith('.')]
+    else:
+        return [os.path.join(corpus_path, filename) for filename in os.listdir(corpus_path) if os.path.isfile(os.path.join(corpus_path, filename)) and not filename.startswith('.')]
+
 def save_corpus(out_corpus, doc_word_freq, vocab_dict, word_freq):
     docs = {}
     for filename, val in doc_word_freq.iteritems():
@@ -75,25 +81,25 @@ def save_corpus(out_corpus, doc_word_freq, vocab_dict, word_freq):
     save_json(corpus, out_corpus)
 
 
-def load_data(corpus_path):
+def load_data(corpus_path, recursive=False):
     word_freq = defaultdict(lambda: 0) # count the number of times a word appears in a corpus
     doc_word_freq = defaultdict(dict) # count the number of times a word appears in a doc
-    files = (filename for filename in os.listdir(corpus_path) if os.path.isfile(os.path.join(corpus_path, filename)))
+    files = get_all_files(corpus_path, recursive)
+    import pdb;pdb.set_trace()
     for filename in files:
-        if filename.startswith('.'):
-            continue
         try:
-            with open(os.path.join(corpus_path, filename), 'r') as fp:
+            with open(filename, 'r') as fp:
                 text = fp.read().lower()
                 words = word_tokenizer.tokenize(text)
                 words = [word for word in words if word not in cached_stop_words]
 
                 for i in range(len(words)):
                     # doc-word frequency
+                    basename = os.path.basename(filename)
                     try:
-                        doc_word_freq[filename][words[i]] += 1
+                        doc_word_freq[basename][words[i]] += 1
                     except:
-                        doc_word_freq[filename][words[i]] = 1
+                        doc_word_freq[basename][words[i]] = 1
                     # word frequency
                     word_freq[words[i]] += 1
         except Exception as e:
@@ -118,8 +124,8 @@ def get_vocab_dict(word_freq, threshold=5, topn=None):
 #     return [word for word, freq in word_freq.iteritems() if freq < threshold]
 
 
-def construct_corpus(corpus_path, out_corpus, threshold=5):
-    word_freq, doc_word_freq = load_data(corpus_path)
+def construct_corpus(corpus_path, out_corpus, threshold=5, recursive=False):
+    word_freq, doc_word_freq = load_data(corpus_path, recursive)
     print 'finished loading'
     vocab_dict = get_vocab_dict(word_freq, threshold=threshold, topn=None)
     new_word_freq = dict([(word, freq) for word, freq in word_freq.items() if word in vocab_dict])
@@ -235,15 +241,20 @@ def init_weights2(topic_vocab, vocab_dict, epsilon=1e-5):
 
 
 def get_20news_doc_labels(corpus_path):
-    dirs = os.listdir(corpus_path)
-    if '.DS_Store' in dirs:
-        dirs.remove('.DS_Store')
+    doc_labels = defaultdict(list)
+    files = get_all_files(corpus_path, True)
+    for filename in files:
+        label, name = filename.split('/')[-2:]
+        doc_labels[name].append(label)
+    # dirs = os.listdir(corpus_path)
 
-    doc_labels = {}
-    for each in dirs:
-        docs = os.listdir(os.path.join(corpus_path, each))
-        for doc in docs:
-            doc_labels[doc] = each
+    # doc_labels = {}
+    # for each in dirs:
+    #     if not os.path.isdir(each):
+    #         continue
+    #     docs = os.listdir(os.path.join(corpus_path, each))
+    #     for doc in docs:
+    #         doc_labels[doc] = each
 
     return doc_labels
 
@@ -264,7 +275,8 @@ if __name__ == "__main__":
         print usage
         sys.exit()
 
-    # construct_corpus(corpus_path, out_corpus)
+    construct_corpus(corpus_path, out_corpus, recursive=True)
+    doc_labels = get_20news_doc_labels(corpus_path)
     # corpus = load_corpus(corpus_path)
     # doc_labels = get_8k_doc_labels(corpus['docs'].keys())
     # save_json(doc_labels, out_corpus)
