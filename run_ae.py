@@ -37,7 +37,9 @@ def main():
     parser.add_argument('-ne', '--n_epoch', type=int, default=100, help='num of epoches (default 100)')
     parser.add_argument('-bs', '--batch_size', type=int, default=100, help='batch size (default 100)')
     parser.add_argument('-o', '--output', type=str, default='./', help='path to the output dir (default current dir)')
-    parser.add_argument('-l', '--load', type=str, help='path to the pretrained model')
+    parser.add_argument('-lm', '--load_model', type=str, help='path to the pretrained model')
+    parser.add_argument('-lw', '--load_weights', type=str, help='path to the pretrained weights')
+    parser.add_argument('-sw', '--save_weights', action='store_true', help='save weights flag')
     args = parser.parse_args()
 
     corpus_dir = args.corpus_dir
@@ -45,10 +47,10 @@ def main():
     n_epoch = args.n_epoch
     batch_size = args.batch_size
     out_path = args.output
-    model_path = args.load
+    model_path = args.load_model
+
 
     corpus = load_corpus(corpus_dir)
-
     vocab, docs = corpus['vocab'], corpus['docs']
     # docs = dict(docs.items()[:5000])
     n_vocab = len(vocab)
@@ -81,8 +83,12 @@ def main():
     X_train_noisy = X_train
     X_test_noisy = X_test
 
+
     ae = AutoEncoder(dim=n_dim, nb_epoch=n_epoch, batch_size=batch_size, model_save_path=os.path.join(out_path, 'model.hdf5'))
-    ae.fit([X_train_noisy, X_train], [X_test_noisy, X_test], feature_weights=feature_weights)
+    ae.fit([X_train_noisy, X_train], [X_test_noisy, X_test], feature_weights=feature_weights, init_weights=None, weights_file=args.load_weights)
+
+    if args.save_weights:
+        ae.autoencoder.save_weights(os.path.join(out_path, 'weights_%s.h5' % n_dim))
 
     doc_codes = ae.encoder.predict(X_docs)
     save_json(dict(zip(doc_names, doc_codes.tolist())), os.path.join(out_path, 'doc_codes.txt'))

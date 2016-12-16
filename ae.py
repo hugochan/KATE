@@ -44,17 +44,17 @@ class AutoEncoder(object):
         self.batch_size = batch_size
         self.model_save_path = model_save_path
 
-    def fit(self, train_X, val_X, feature_weights=None, init_weights=None):
+    def fit(self, train_X, val_X, feature_weights=None, init_weights=None, weights_file=None):
         n_feature = train_X[0].shape[1]
         # this is our input placeholder
         input_layer = Input(shape=(n_feature,))
 
         # "encoded" is the encoded representation of the input
-        if not init_weights is None:
-            encoded_layer = Dense(self.dim, init='glorot_normal', activation='sigmoid', weights=init_weights)
-        else:
+        if init_weights is None:
+            encoded_layer = Dense(self.dim, init='glorot_normal', activation='sigmoid', name='Encoded_Layer')
             # encoded_layer = Dense(self.dim, init='glorot_normal')
-            encoded_layer = Dense(self.dim, init='glorot_normal', activation='sigmoid')
+        else:
+            encoded_layer = Dense(self.dim, activation='sigmoid', weights=init_weights, name='Encoded_Layer')
 
         # add a Dense layer with a L1 activity regularizer
         # encoded_layer = Dense(self.dim, init='normal', activation='relu',
@@ -80,7 +80,7 @@ class AutoEncoder(object):
         # "decoded" is the lossy reconstruction of the input
         # add non-negativity contraint to ensure probabilistic interpretations
         # decoded = Dense(n_feature, init='glorot_normal', activation='sigmoid')(encoded)
-        decoded = Dense_tied(n_feature, init='glorot_normal', activation='sigmoid', tied_to=encoded_layer)(encoded)
+        decoded = Dense_tied(n_feature, init='glorot_normal', activation='sigmoid', tied_to=encoded_layer, name='Decoded_Layer')(encoded)
 
         # this model maps an input to its reconstruction
         self.autoencoder = Model(input=input_layer, output=decoded)
@@ -99,8 +99,15 @@ class AutoEncoder(object):
         optimizer = Adadelta(lr=1.5)
         # optimizer = Adam()
         # optimizer = Adagrad()
-        self.autoencoder.compile(optimizer=optimizer, loss=weighted_binary_crossentropy(feature_weights)) # kld, binary_crossentropy, mse
-        # self.autoencoder.compile(optimizer=optimizer, loss='binary_crossentropy') # kld, binary_crossentropy, mse
+        if feature_weights is None:
+            self.autoencoder.compile(optimizer=optimizer, loss='binary_crossentropy') # kld, binary_crossentropy, mse
+        else:
+            print 'using feature weights'
+            self.autoencoder.compile(optimizer=optimizer, loss=weighted_binary_crossentropy(feature_weights)) # kld, binary_crossentropy, mse
+
+        if not weights_file is None:
+            self.autoencoder.load_weights(weights_file, by_name=True)
+
         self.autoencoder.fit(train_X[0], train_X[1],
                         nb_epoch=self.nb_epoch,
                         batch_size=self.batch_size,
