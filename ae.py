@@ -44,7 +44,7 @@ class AutoEncoder(object):
         self.batch_size = batch_size
         self.model_save_path = model_save_path
 
-    def fit(self, train_X, val_X, feature_weights=None, init_weights=None, weights_file=None):
+    def fit(self, train_X, val_X, sparse_topk=None, sparse_alpha=None, feature_weights=None, init_weights=None, weights_file=None):
         n_feature = train_X[0].shape[1]
         # this is our input placeholder
         input_layer = Input(shape=(n_feature,))
@@ -71,7 +71,9 @@ class AutoEncoder(object):
         # sparsity_level = {'topk': self.dim}
         # import pdb;pdb.set_trace()
         # encoded = Lambda(self.kSparse, output_shape=(self.dim,), arguments={'sparsity': sparsity_level})(encoded)
-        # encoded = KSparse(start_k, alpha)(encoded)
+        if sparse_topk:
+            encoded = KSparse(sparse_topk, sparse_alpha if sparse_alpha else 1)(encoded)
+            print 'add k-sparse layer'
         # encoded = Dropout(.2)(encoded)
 
 

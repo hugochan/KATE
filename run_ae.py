@@ -40,6 +40,8 @@ def main():
     parser.add_argument('-lm', '--load_model', type=str, help='path to the pretrained model')
     parser.add_argument('-lw', '--load_weights', type=str, help='path to the pretrained weights')
     parser.add_argument('-sw', '--save_weights', action='store_true', help='save weights flag')
+    parser.add_argument('-sk', '--sparse_topk', type=int, default=None, help='saprse topk')
+    parser.add_argument('-sa', '--sparse_alpha', type=float, default=None, help='saprse alpha')
     args = parser.parse_args()
 
     corpus_dir = args.corpus_dir
@@ -48,7 +50,8 @@ def main():
     batch_size = args.batch_size
     out_path = args.output
     model_path = args.load_model
-
+    sparse_topk = args.sparse_topk
+    sparse_alpha = args.sparse_alpha
 
     corpus = load_corpus(corpus_dir)
     vocab, docs = corpus['vocab'], corpus['docs']
@@ -85,7 +88,8 @@ def main():
 
 
     ae = AutoEncoder(dim=n_dim, nb_epoch=n_epoch, batch_size=batch_size, model_save_path=os.path.join(out_path, 'model.hdf5'))
-    ae.fit([X_train_noisy, X_train], [X_test_noisy, X_test], feature_weights=feature_weights, init_weights=None, weights_file=args.load_weights)
+    ae.fit([X_train_noisy, X_train], [X_test_noisy, X_test], sparse_topk=sparse_topk, sparse_alpha=sparse_alpha,\
+            feature_weights=feature_weights, init_weights=None, weights_file=args.load_weights)
 
     if args.save_weights:
         ae.autoencoder.save_weights(os.path.join(out_path, 'weights_%s.h5' % n_dim))

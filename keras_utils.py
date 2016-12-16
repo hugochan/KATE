@@ -95,7 +95,12 @@ class KSparse(Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
     def kSparse(self, x, topk):
-        k = int(x.get_shape()[1]) - topk
+        dim = int(x.get_shape()[1])
+        if topk > dim:
+            print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
+            topk = dim
+
+        k = dim - topk
         values, indices = tf.nn.top_k(-x, k) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
 
         # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
