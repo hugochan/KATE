@@ -52,7 +52,7 @@ class AutoEncoder(object):
         # "encoded" is the encoded representation of the input
         if init_weights is None:
             encoded_layer = Dense(self.dim, init='glorot_normal', activation='sigmoid', name='Encoded_Layer')
-            # encoded_layer = Dense(self.dim, init='glorot_normal')
+            # encoded_layer = Dense(self.dim, init='glorot_normal', name='Encoded_Layer')
         else:
             encoded_layer = Dense(self.dim, activation='sigmoid', weights=init_weights, name='Encoded_Layer')
 
@@ -75,13 +75,13 @@ class AutoEncoder(object):
             encoded = KSparse(sparse_topk, sparse_alpha if sparse_alpha else 1)(encoded)
             print 'add k-sparse layer'
         # encoded = Dropout(.2)(encoded)
-
+        # encoded = Activation('sigmoid')(encoded)
 
 
 
         # "decoded" is the lossy reconstruction of the input
         # add non-negativity contraint to ensure probabilistic interpretations
-        # decoded = Dense(n_feature, init='glorot_normal', activation='sigmoid')(encoded)
+        # decoded = Dense(n_feature, init='glorot_normal', activation='sigmoid', name='Decoded_Layer')(encoded)
         decoded = Dense_tied(n_feature, init='glorot_normal', activation='sigmoid', tied_to=encoded_layer, name='Decoded_Layer')(encoded)
 
         # this model maps an input to its reconstruction
@@ -104,7 +104,7 @@ class AutoEncoder(object):
         if feature_weights is None:
             self.autoencoder.compile(optimizer=optimizer, loss='binary_crossentropy') # kld, binary_crossentropy, mse
         else:
-            print 'using feature weights'
+            print 'using weighted loss'
             self.autoencoder.compile(optimizer=optimizer, loss=weighted_binary_crossentropy(feature_weights)) # kld, binary_crossentropy, mse
 
         if not weights_file is None:

@@ -111,7 +111,21 @@ class KSparse(Layer):
         full_indices = tf.reshape(full_indices, [-1, 2])
 
         to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
-        res = x + to_reset
+
+
+
+        tmp = tf.reduce_sum(to_reset) / topk
+
+        to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, tmp), [-1]), default_value=0., validate_indices=False)
+
+        res = tf.add(x, to_reset)
+
+        # preserve lost engery
+        # method 1) scale up
+        # res = float(dim) / topk * res
+
+        # method 2) add complement
+        res = tf.sub(res, tmp)
 
         return res
 
