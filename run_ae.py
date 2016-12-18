@@ -55,9 +55,10 @@ def main():
 
     corpus = load_corpus(corpus_dir)
     vocab, docs = corpus['vocab'], corpus['docs']
-    # docs = dict(docs.items()[:5000])
+
     n_vocab = len(vocab)
     n_docs = len(docs)
+
 
     doc_names = docs.keys()
     X_docs = np.r_[[vecnorm(doc2vec(x, n_vocab), 'logmax1', 0) for x in docs.values()]]
@@ -95,7 +96,7 @@ def main():
         ae.autoencoder.save_weights(os.path.join(out_path, 'weights_%s.h5' % n_dim))
 
     doc_codes = ae.encoder.predict(X_docs)
-    save_json(dict(zip(doc_names, doc_codes.tolist())), os.path.join(out_path, 'doc_codes.txt'))
+    save_json(dict(zip(doc_names, doc_codes.tolist())), os.path.join(out_path, 'doc_codes_%s.txt' % n_dim))
     import pdb;pdb.set_trace()
     # topics = get_topics(ae, revdict(vocab), topn=10)
 

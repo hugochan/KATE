@@ -86,7 +86,8 @@ class KSparse(Layer):
         super(KSparse, self).__init__(**kwargs)
 
     def call(self, x, mask=None):
-        res = K.in_train_phase(self.kSparse(x, self.topk), self.kSparse(x, int(self.alpha * self.topk)))
+        # res = K.in_train_phase(self.kSparse(x, self.topk), self.kSparse(x, int(self.alpha * self.topk)))
+        res = K.in_train_phase(self.kSparse(x, self.topk), x)
         return res
 
     def get_config(self):
@@ -115,7 +116,6 @@ class KSparse(Layer):
 
 
         tmp = tf.reduce_sum(to_reset) / topk
-
         to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, tmp), [-1]), default_value=0., validate_indices=False)
 
         res = tf.add(x, to_reset)
