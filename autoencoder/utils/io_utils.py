@@ -41,3 +41,11 @@ def load_json(file):
         raise e
 
     return data
+
+def write_file(data, file):
+    try:
+        with open(file, 'w') as datafile:
+            for line in data:
+                datafile.write(' '.join(line) + '\n')
+    except Exception as e:
+        raise e

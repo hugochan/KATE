@@ -280,17 +280,15 @@ class AutoEncoder(object):
 
         return self
 
-def save_model(model, out_path):
-    weights_file = path.join(out_path, 'weights.h5')
+def save_model(model, arch_file, weights_file):
     arch = {'input_size': model.input_size,
             'dim': model.dim,
-            'comp_topk': model.comp_topk,
-            'weights_file': weights_file}
+            'comp_topk': model.comp_topk}
     model.autoencoder.save_weights(weights_file)
-    dump_json(arch, path.join(out_path, 'model.json'))
+    dump_json(arch_file)
 
-def load_model(model_file):
-    arch = load_json(model_file)
-    ae = AutoEncoder(arch['input_size'], arch['dim'], comp_topk=arch['comp_topk'], weights_file=arch['weights_file'])
+def load_model(arch_file, weights_file):
+    arch = load_json(arch_file)
+    ae = AutoEncoder(arch['input_size'], arch['dim'], comp_topk=arch['comp_topk'], weights_file=weights_file)
 
     return ae
