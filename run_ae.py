@@ -4,11 +4,14 @@ Created on Nov, 2016
 @author: hugo
 
 '''
-
-import os
+from __future__ import absolute_import
+from os import path
 import numpy as np
-from utils import *
-from ae import AutoEncoder
+
+from autoencoder.core.ae import AutoEncoder
+from autoencoder.preprocessing.preprocessing import load_corpus, doc2vec, vocab_weights
+from autoencoder.utils.np_utils import vecnorm, corrupted_matrix
+
 
 def get_topics(ae, vocab, topn=10):
     topics = []
@@ -88,15 +91,15 @@ def main():
     X_test_noisy = X_test
 
 
-    ae = AutoEncoder(dim=n_dim, nb_epoch=n_epoch, batch_size=batch_size, model_save_path=os.path.join(out_path, 'model.hdf5'))
+    ae = AutoEncoder(dim=n_dim, nb_epoch=n_epoch, batch_size=batch_size, model_save_path=path.join(out_path, 'model_%s.hdf5' % n_dim))
     ae.fit([X_train_noisy, X_train], [X_test_noisy, X_test], sparse_topk=sparse_topk, sparse_alpha=sparse_alpha,\
             feature_weights=feature_weights, init_weights=None, weights_file=args.load_weights)
 
     if args.save_weights:
-        ae.autoencoder.save_weights(os.path.join(out_path, 'weights_%s.h5' % n_dim))
+        ae.autoencoder.save_weights(path.join(out_path, 'weights_%s.h5' % n_dim))
 
     doc_codes = ae.encoder.predict(X_docs)
-    save_json(dict(zip(doc_names, doc_codes.tolist())), os.path.join(out_path, 'doc_codes_%s.txt' % n_dim))
+    save_json(dict(zip(doc_names, doc_codes.tolist())), path.join(out_path, 'doc_codes_%s.txt' % n_dim))
     import pdb;pdb.set_trace()
     # topics = get_topics(ae, revdict(vocab), topn=10)
 

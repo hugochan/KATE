@@ -1,7 +1,8 @@
 *.DS_Store
 *.pyc
-*.h5
 *.png
-*.mod
-*.txt
-*.corpus*
+report/
+output/
+corpus/
+imgs/
+others/

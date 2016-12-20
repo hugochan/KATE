@@ -4,7 +4,7 @@ Created on Nov, 2016
 @author: hugo
 
 '''
-
+from __future__ import absolute_import
 import numpy as np
 from keras.layers import Input, Dense, Lambda, Dropout
 from keras.models import Model
@@ -13,16 +13,11 @@ from keras.models import load_model
 from keras import regularizers
 import keras.backend as K
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-from keras_utils import Dense_tied, weighted_binary_crossentropy, KSparseScheduler, KSparse
-from keras.layers.normalization import BatchNormalization
 from keras.layers.core import Activation
-from keras.layers.advanced_activations import PReLU
+# from keras.layers.normalization import BatchNormalization
 import tensorflow as tf
-# from keras.objectives import
-# from keras.constraints import nonneg
-# from utils import l1norm
 
-# sess = tf.InteractiveSession()
+from ..utils.keras_utils import Dense_tied, weighted_binary_crossentropy, KSparse
 
 
 class AutoEncoder(object):
@@ -73,8 +68,8 @@ class AutoEncoder(object):
         # import pdb;pdb.set_trace()
         # encoded = Lambda(self.kSparse, output_shape=(self.dim,), arguments={'sparsity': sparsity_level})(encoded)
         if sparse_topk:
-            encoded = KSparse(sparse_topk, sparse_alpha if sparse_alpha else 1)(encoded)
             print 'add k-sparse layer'
+            encoded = KSparse(sparse_topk, sparse_alpha if sparse_alpha else 1)(encoded)
         # encoded = Dropout(.2)(encoded)
         # encoded = Activation('sigmoid')(encoded)
 
@@ -120,7 +115,6 @@ class AutoEncoder(object):
                                     ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.01),
                                     EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto'),
                                     ModelCheckpoint(self.model_save_path, monitor='val_loss', save_best_only=True, verbose=0),
-                                    # KSparseScheduler(sparsity_level, start_k, end_k, step_k, alpha, sparsity_level),
                         ]
                         )
 
@@ -283,72 +277,3 @@ class AutoEncoder(object):
                         )
 
         return self
-
-    def kSparse(self, X, **kwargs):
-        k = int(X.get_shape()[1]) - kwargs['sparsity']['topk']
-        values, indices = tf.nn.top_k(-X, k) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
-
-        # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
-        my_range = tf.expand_dims(tf.range(0, tf.shape(indices)[0]), 1)  # will be [[0], [1]]
-        my_range_repeated = tf.tile(my_range, [1, k])  # will be [[0, 0], [1, 1]]
-
-        full_indices = tf.concat(2, [tf.expand_dims(my_range_repeated, 2), tf.expand_dims(indices, 2)])  # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
-        full_indices = tf.reshape(full_indices, [-1, 2])
-
-        to_reset = tf.sparse_to_dense(full_indices, tf.shape(X), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
-        res = X + to_reset
-
-        return res
-
-    def save_all(self, model_dict):
-        for k, v in model_dict:
-            k.save(v)
-
-    def save_mod(self, mod_file):
-        self.autoencoder.save(mod_file)
-
-        return self
-
-    def load_mod(self, mod_file):
-        return load_model(mod_file)
-
-
-def demo():
-    from keras.datasets import mnist
-    import numpy as np
-    (x_train, _), (x_test, _) = mnist.load_data()
-
-    x_train = x_train.astype('float32') / 255.
-    x_test = x_test.astype('float32') / 255.
-    x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))[:10000]
-    x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))[:1000]
-
-    ae = AutoEncoder(dim=32, nb_epoch=50, batch_size=100).fit([x_train, x_train], [x_test, x_test])
-    # encode and decode some digits
-    # note that we take them from the *test* set
-    encoded_x = ae.encoder.predict(x_test)
-    decoded_x = ae.decoder.predict(encoded_x)
-
-    # use Matplotlib (don't ask)
-    import matplotlib.pyplot as plt
-
-    n = 10  # how many digits we will display
-    plt.figure(figsize=(20, 4))
-    for i in range(n):
-        # display original
-        ax = plt.subplot(2, n, i + 1)
-        plt.imshow(x_test[i].reshape(28, 28))
-        plt.gray()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-
-        # display reconstruction
-        ax = plt.subplot(2, n, i + 1 + n)
-        plt.imshow(decoded_x[i].reshape(28, 28))
-        plt.gray()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-    plt.show()
-
-if __name__ == '__main__':
-    demo()
