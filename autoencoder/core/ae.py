@@ -5,6 +5,7 @@ Created on Nov, 2016
 
 '''
 from __future__ import absolute_import
+from os import path
 import numpy as np
 from keras.layers import Input, Dense, Lambda, Dropout
 from keras.models import Model
@@ -17,8 +18,8 @@ from keras.layers.core import Activation
 # from keras.layers.normalization import BatchNormalization
 import tensorflow as tf
 
-from ..utils.keras_utils import Dense_tied, weighted_binary_crossentropy, KSparse
-
+from ..utils.keras_utils import Dense_tied, weighted_binary_crossentropy, KCompetitive
+from ..utils.io_utils import dump_json, load_json
 
 class AutoEncoder(object):
     """AutoEncoder for topic modeling.
@@ -33,17 +34,18 @@ class AutoEncoder(object):
 
         """
 
-    def __init__(self, dim, nb_epoch=50, batch_size=100, model_save_path='./'):
+    def __init__(self, input_size, dim, comp_topk=None, \
+        init_weights=None, weights_file=None, model_save_path='./'):
+        self.input_size = input_size
         self.dim = dim
-        self.nb_epoch = nb_epoch
-        self.batch_size = batch_size
+        self.comp_topk = comp_topk
         self.model_save_path = model_save_path
 
-    def fit(self, train_X, val_X, sparse_topk=None, sparse_alpha=None, feature_weights=None, init_weights=None, weights_file=None):
-        print 'running autoencoder'
-        n_feature = train_X[0].shape[1]
+        self.build(init_weights, weights_file)
+
+    def build(self, init_weights=None, weights_file=None):
         # this is our input placeholder
-        input_layer = Input(shape=(n_feature,))
+        input_layer = Input(shape=(self.input_size,))
 
         # "encoded" is the encoded representation of the input
         if init_weights is None:
@@ -67,22 +69,20 @@ class AutoEncoder(object):
         # sparsity_level = {'topk': self.dim}
         # import pdb;pdb.set_trace()
         # encoded = Lambda(self.kSparse, output_shape=(self.dim,), arguments={'sparsity': sparsity_level})(encoded)
-        if sparse_topk:
-            print 'add k-sparse layer'
-            encoded = KSparse(sparse_topk, sparse_alpha if sparse_alpha else 1)(encoded)
+        if self.comp_topk:
+            print 'add k-competitive layer'
+            encoded = KCompetitive(self.comp_topk)(encoded)
         # encoded = Dropout(.2)(encoded)
         # encoded = Activation('sigmoid')(encoded)
 
 
-
         # "decoded" is the lossy reconstruction of the input
         # add non-negativity contraint to ensure probabilistic interpretations
-        # decoded = Dense(n_feature, init='glorot_normal', activation='sigmoid', name='Decoded_Layer')(encoded)
-        decoded = Dense_tied(n_feature, init='glorot_normal', activation='sigmoid', tied_to=encoded_layer, name='Decoded_Layer')(encoded)
+        # decoded = Dense(self.input_size, init='glorot_normal', activation='sigmoid', name='Decoded_Layer')(encoded)
+        decoded = Dense_tied(self.input_size, init='glorot_normal', activation='sigmoid', tied_to=encoded_layer, name='Decoded_Layer')(encoded)
 
         # this model maps an input to its reconstruction
         self.autoencoder = Model(input=input_layer, output=decoded)
-
 
         # this model maps an input to its encoded representation
         self.encoder = Model(input=input_layer, output=encoded)
@@ -94,21 +94,23 @@ class AutoEncoder(object):
         # create the decoder model
         self.decoder = Model(input=encoded_input, output=decoder_layer(encoded_input))
 
+        if not weights_file is None:
+            self.autoencoder.load_weights(weights_file, by_name=True)
+
+    def fit(self, train_X, val_X, nb_epoch=50, batch_size=100, feature_weights=None):
+        print 'Training autoencoder'
         optimizer = Adadelta(lr=1.5)
         # optimizer = Adam()
         # optimizer = Adagrad()
         if feature_weights is None:
             self.autoencoder.compile(optimizer=optimizer, loss='binary_crossentropy') # kld, binary_crossentropy, mse
         else:
-            print 'using weighted loss'
+            print 'Using weighted loss'
             self.autoencoder.compile(optimizer=optimizer, loss=weighted_binary_crossentropy(feature_weights)) # kld, binary_crossentropy, mse
 
-        if not weights_file is None:
-            self.autoencoder.load_weights(weights_file, by_name=True)
-
         self.autoencoder.fit(train_X[0], train_X[1],
-                        nb_epoch=self.nb_epoch,
-                        batch_size=self.batch_size,
+                        nb_epoch=nb_epoch,
+                        batch_size=batch_size,
                         shuffle=True,
                         validation_data=(val_X[0], val_X[1]),
                         callbacks=[
@@ -120,7 +122,7 @@ class AutoEncoder(object):
 
         return self
 
-    def fit_deepfit(self, train_X, val_X, sparse_topk=None, sparse_alpha=None, feature_weights=None, init_weights=None, weights_file=None):
+    def fit_deepfit(self, train_X, val_X, sparse_topk=None, feature_weights=None, init_weights=None, weights_file=None):
         print 'running deep autoencoder'
         n_feature = train_X[0].shape[1]
         h1_dim = 512
@@ -135,14 +137,14 @@ class AutoEncoder(object):
         encoded = h1_layer(input_layer)
 
         if sparse_topk:
-            encoded = KSparse(sparse_topk, sparse_alpha if sparse_alpha else 1)(encoded)
-            print 'add k-sparse layer'
+            encoded = KCompetitive(sparse_topk)(encoded)
+            print 'add k-competitive layer'
 
         encoded = encoded_layer(encoded)
 
         if sparse_topk:
-            encoded = KSparse(sparse_topk, sparse_alpha if sparse_alpha else 1)(encoded)
-            print 'add k-sparse layer'
+            encoded = KCompetitive(sparse_topk)(encoded)
+            print 'add k-competitive layer'
 
         # "decoded" is the lossy reconstruction of the input
         decoder_layer = Dense_tied(h1_dim, init='glorot_normal', activation='sigmoid', tied_to=encoded_layer)
@@ -150,13 +152,13 @@ class AutoEncoder(object):
         decoded = decoder_layer(encoded)
 
         if sparse_topk:
-            decoded = KSparse(sparse_topk, sparse_alpha if sparse_alpha else 1)(decoded)
-            print 'add k-sparse layer'
+            decoded = KCompetitive(sparse_topk)(decoded)
+            print 'add k-competitive layer'
 
         decoded = rev_h1_layer(decoded)
         if sparse_topk:
-            decoded = KSparse(sparse_topk, sparse_alpha if sparse_alpha else 1)(decoded)
-            print 'add k-sparse layer'
+            decoded = KCompetitive(sparse_topk)(decoded)
+            print 'add k-competitive layer'
 
 
 
@@ -277,3 +279,18 @@ class AutoEncoder(object):
                         )
 
         return self
+
+def save_model(model, out_path):
+    weights_file = path.join(out_path, 'weights.h5')
+    arch = {'input_size': model.input_size,
+            'dim': model.dim,
+            'comp_topk': model.comp_topk,
+            'weights_file': weights_file}
+    model.autoencoder.save_weights(weights_file)
+    dump_json(arch, path.join(out_path, 'model.json'))
+
+def load_model(model_file):
+    arch = load_json(model_file)
+    ae = AutoEncoder(arch['input_size'], arch['dim'], comp_topk=arch['comp_topk'], weights_file=arch['weights_file'])
+
+    return ae

@@ -131,7 +131,7 @@ def construct_train_test_corpus(train_path, test_path, output, threshold=5, topn
     print 'Generated training corpus'
 
     test_docs, _, _ = construct_corpus(test_path, False, vocab_dict=vocab_dict, recursive=True)
-    test_corpus = {'docs': test_docs}
+    test_corpus = {'docs': test_docs, 'vocab': vocab_dict}
     dump_json(test_corpus, os.path.join(output, 'test.corpus'))
     print 'Generated test corpus'
 
@@ -154,8 +154,9 @@ def idf(docs, dim):
 
 def vocab_weights(vocab_dict, word_freq, max_=100., ratio=.75):
     weights = np.zeros((len(vocab_dict), 1))
+
     for word, idx in vocab_dict.items():
-        weights[idx] = word_freq[idx]
+        weights[idx] = word_freq[str(idx)]
     weights = np.clip(weights / max_, 0., 1.)
 
     return np.power(weights, ratio)

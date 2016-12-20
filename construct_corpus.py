@@ -18,10 +18,7 @@ if __name__ == "__main__":
     except:
         print usage
         sys.exit()
-    try:
-        train_corpus, test_corpus = construct_train_test_corpus(train_path, test_path, out_path, threshold=5, topn=None)
-        train_labels = generate_20news_doc_labels(train_corpus['docs'].keys(), os.path.join(out_path, 'train.labels'))
-        test_labels = generate_20news_doc_labels(test_corpus['docs'].keys(), os.path.join(out_path, 'test.labels'))
-    except:
-        import pdb;pdb.set_trace()
-    import pdb;pdb.set_trace()
+
+    train_corpus, test_corpus = construct_train_test_corpus(train_path, test_path, out_path, threshold=5, topn=2000)
+    train_labels = generate_20news_doc_labels(train_corpus['docs'].keys(), os.path.join(out_path, 'train.labels'))
+    test_labels = generate_20news_doc_labels(test_corpus['docs'].keys(), os.path.join(out_path, 'test.labels'))

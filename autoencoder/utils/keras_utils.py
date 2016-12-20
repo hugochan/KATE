@@ -77,32 +77,27 @@ class KSparseScheduler(Callback):
         # print 'on_epoch_end'
         # print self.topk_dict
 
-class KSparse(Layer):
-    '''Applies K-Sparse layer.
+class KCompetitive(Layer):
+    '''Applies K-Competitive layer.
 
     # Arguments
-
-    # References
-        - Makhzani, Alireza, and Brendan Frey. "k-Sparse Autoencoders." arXiv preprint arXiv:1312.5663 (2013).
     '''
-    def __init__(self, topk, alpha, **kwargs):
+    def __init__(self, topk, **kwargs):
         self.topk = topk
-        self.alpha = alpha
         self.uses_learning_phase = True
         self.supports_masking = True
-        super(KSparse, self).__init__(**kwargs)
+        super(KCompetitive, self).__init__(**kwargs)
 
     def call(self, x, mask=None):
-        # res = K.in_train_phase(self.kSparse(x, self.topk), self.kSparse(x, int(self.alpha * self.topk)))
-        res = K.in_train_phase(self.kSparse(x, self.topk), x)
+        res = K.in_train_phase(self.k_comp(x, self.topk), x)
         return res
 
     def get_config(self):
-        config = {'topk': self.topk, 'alpha': self.alpha}
-        base_config = super(KSparse, self).get_config()
+        config = {'topk': self.topk}
+        base_config = super(KCompetitive, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
-    def kSparse(self, x, topk):
+    def k_comp(self, x, topk):
         print 'run k-sparse with compensation'
         dim = int(x.get_shape()[1])
         if topk > dim:
@@ -121,8 +116,6 @@ class KSparse(Layer):
 
         to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
 
-
-
         tmp = tf.reduce_sum(to_reset) / topk
         to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, tmp), [-1]), default_value=0., validate_indices=False)
 
@@ -137,7 +130,7 @@ class KSparse(Layer):
 
         return res
 
-    def regular_kSparse(self, x, topk):
+    def kSparse(self, x, topk):
         print 'run regular k-sparse'
         dim = int(x.get_shape()[1])
         if topk > dim:
