@@ -10,7 +10,7 @@ import numpy as np
 
 from autoencoder.core.ae import AutoEncoder, load_model, save_model
 from autoencoder.preprocessing.preprocessing import load_corpus, doc2vec
-from autoencoder.utils.op_utils import vecnorm #, corrupted_matrix
+from autoencoder.utils.op_utils import vecnorm, revdict #, corrupted_matrix
 from autoencoder.utils.io_utils import dump_json, write_file
 
 # def get_topics(ae, vocab, topn=10):
@@ -27,7 +27,7 @@ from autoencoder.utils.io_utils import dump_json, write_file
 
 def get_topics(ae, vocab, topn=10):
     topics = []
-    weights = ae.get_weights()[0]
+    weights = ae.encoder.get_weights()[0]
     for idx in range(ae.dim):
         token_idx = np.argsort(weights[:, idx])[::-1][:topn]
         topics.append([vocab[x] for x in token_idx])
@@ -52,7 +52,7 @@ def test(args):
     print 'Saved doc codes file to %s' % args.output
 
     if args.save_topics:
-        topics = get_topics(ae, vocab, topn=10)
+        topics = get_topics(ae, revdict(vocab), topn=10)
         write_file(topics, args.save_topics)
         print 'Saved topics file to %s' % args.save_topics
 

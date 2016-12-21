@@ -28,7 +28,7 @@ def train(args):
     feature_weights = vecnorm(vocab_weights(vocab, word_freq, max_=100., ratio=.75), 'prob', 0)
 
     np.random.seed(0)
-    train_ratio = .8
+    train_ratio = .9
     train_idx = np.random.choice(range(n_docs), int(n_docs * train_ratio), replace=False)
     val_idx = list(set(range(n_docs)) - set(train_idx))
     X_train = X_docs[train_idx]

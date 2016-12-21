@@ -116,7 +116,7 @@ class AutoEncoder(object):
                         callbacks=[
                                     ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.01),
                                     EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto'),
-                                    ModelCheckpoint(self.model_save_path, monitor='val_loss', save_best_only=True, verbose=0),
+                                    # ModelCheckpoint(self.model_save_path, monitor='val_loss', save_best_only=True, verbose=0),
                         ]
                         )
 
@@ -274,7 +274,7 @@ class AutoEncoder(object):
                         shuffle=True,
                         validation_data=(val_X[0], val_X[1]),
                         callbacks=[EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto'),
-                                    ModelCheckpoint(self.model_save_path, monitor='val_loss', save_best_only=True, verbose=0),
+                                    # ModelCheckpoint(self.model_save_path, monitor='val_loss', save_best_only=True, verbose=0),
                         ]
                         )
 
@@ -285,7 +285,7 @@ def save_model(model, arch_file, weights_file):
             'dim': model.dim,
             'comp_topk': model.comp_topk}
     model.autoencoder.save_weights(weights_file)
-    dump_json(arch_file)
+    dump_json(arch, arch_file)
 
 def load_model(arch_file, weights_file):
     arch = load_json(arch_file)
