@@ -78,3 +78,19 @@ def construct_train_test_corpus(path_list, test_split, output, threshold=10, top
     test_corpus = {'docs': test_docs, 'vocab': vocab_dict}
     dump_json(test_corpus, os.path.join(output, 'test.corpus'))
     print 'Generated test corpus'
+
+def extract_labels(docs, path, output):
+    doc_labels = defaultdict(set)
+    with open(path, 'r') as f:
+        for line in f:
+            label, did, _ = line.strip('\n').split()
+            if did in docs:
+                doc_labels[did].add(label)
+    doc_labels = dict([(x, list(y)) for x, y in doc_labels.iteritems()])
+
+    dump_json(doc_labels, output)
+
+    return doc_labels
+
+
+
