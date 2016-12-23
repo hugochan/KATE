@@ -183,7 +183,8 @@ class KCompetitive(Layer):
         super(KCompetitive, self).__init__(**kwargs)
 
     def call(self, x, mask=None):
-        res = K.in_train_phase(self.k_comp(x, self.topk), x)
+        # res = K.in_train_phase(self.k_comp(x, self.topk), self.k_comp(x, self.topk)*1.5)
+        res = K.in_train_phase(self.k_comp_ind(x, self.topk), x)
         return res
 
     def get_config(self):
@@ -191,8 +192,46 @@ class KCompetitive(Layer):
         base_config = super(KCompetitive, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
+    def k_comp_ind(self, x, topk):
+        print 'run k-competitive_ind with compensation'
+        dim = int(x.get_shape()[1])
+        if topk > dim:
+            print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
+            topk = dim
+
+        k = dim - topk
+        values, indices = tf.nn.top_k(-x, k) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
+
+        # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
+        my_range = tf.expand_dims(tf.range(0, tf.shape(indices)[0]), 1)  # will be [[0], [1]]
+        my_range_repeated = tf.tile(my_range, [1, k])  # will be [[0, 0], [1, 1]]
+
+        full_indices = tf.concat(2, [tf.expand_dims(my_range_repeated, 2), tf.expand_dims(indices, 2)])  # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
+        full_indices = tf.reshape(full_indices, [-1, 2])
+
+        to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
+
+        batch_size = tf.to_float(tf.shape(x)[0])
+        tmp = 1 * batch_size * tf.reduce_sum(to_reset, 1, keep_dims=True) / topk
+        # batch_size = tf.to_float(tf.shape(x)[0])
+        # tmp = 90 * tf.reduce_sum(to_reset) / topk / batch_size
+
+        to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, tmp), [-1]), default_value=0., validate_indices=False)
+
+        res = tf.add(x, to_reset)
+
+        # preserve lost engery
+        # method 1) scale up
+        # res = float(dim) / topk * res
+
+        # method 2) add complement
+        res = tf.sub(res, tmp)
+
+        return res
+
     def k_comp(self, x, topk):
         print 'run k-competitive with compensation'
+        # import pdb;pdb.set_trace()
         dim = int(x.get_shape()[1])
         if topk > dim:
             print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
@@ -211,6 +250,9 @@ class KCompetitive(Layer):
         to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
 
         tmp = tf.reduce_sum(to_reset) / topk
+        # batch_size = tf.to_float(tf.shape(x)[0])
+        # tmp = 90 * tf.reduce_sum(to_reset) / topk / batch_size
+
         to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, tmp), [-1]), default_value=0., validate_indices=False)
 
         res = tf.add(x, to_reset)

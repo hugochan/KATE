@@ -96,6 +96,7 @@ class AutoEncoder(object):
 
         if not weights_file is None:
             self.autoencoder.load_weights(weights_file, by_name=True)
+            print 'Loaded pretrained weights'
 
     def fit(self, train_X, val_X, nb_epoch=50, batch_size=100, feature_weights=None):
         print 'Training autoencoder'

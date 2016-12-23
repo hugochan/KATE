@@ -14,17 +14,21 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('doc_codes_file', type=str, help='path to the input corpus file')
     parser.add_argument('doc_labels_file', type=str, help='path to the output doc codes file')
+    parser.add_argument('cmd', choices=['pca', 'tsne'], help='plot cmd')
+    parser.add_argument('-o', '--output', type=str, default='out.png', help='path to the output file')
     args = parser.parse_args()
 
+    cmd = args.cmd.lower()
+
+    classes_to_visual = ["rec.sport.hockey", "comp.graphics", "sci.crypt", \
+                            "soc.religion.christian", "talk.politics.mideast", \
+                            "talk.politics.guns"]
+
     # 20news
-    # visualize_pca_2d(load_json(args.doc_codes_file), load_json(args.doc_labels_file), ["rec.sport.hockey", "comp.graphics", "sci.crypt",
-    #                                                             "soc.religion.christian", "talk.politics.mideast",
-    #                                                             "talk.politics.guns"])
-
-    plot_tsne(load_json(args.doc_codes_file), load_json(args.doc_labels_file), ["rec.sport.hockey", "comp.graphics", "sci.crypt",
-                                                                "soc.religion.christian", "talk.politics.mideast",
-                                                                "talk.politics.guns"])
-
+    if cmd == 'pca':
+        visualize_pca_2d(load_json(args.doc_codes_file), load_json(args.doc_labels_file), classes_to_visual, args.output)
+    elif cmd == 'tsne':
+        plot_tsne(load_json(args.doc_codes_file), load_json(args.doc_labels_file), classes_to_visual, args.output)
     # # 8k
     # plot_tsne(load_json(sys.argv[1]), load_json(sys.argv[2]), [0, 1])
     # plot_tsne(load_json(sys.argv[1]), load_json(sys.argv[2]), ['1143155', '889936', '1362719', '700733', '730708'])

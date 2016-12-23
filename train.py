@@ -25,6 +25,7 @@ def train(args):
     # X_docs_noisy = corrupted_matrix(X_docs, corruption_ratio=.1)
 
     # Prepare feature_weights for weighted loss
+    # feature_weights = None
     feature_weights = vecnorm(vocab_weights(vocab, word_freq, max_=100., ratio=.75), 'prob', 0)
 
     np.random.seed(0)

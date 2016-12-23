@@ -60,11 +60,11 @@ def load_data(corpus_path, recursive=False):
                         re.sub('[%s]' % re.escape(string.punctuation), ' ', text.decode(encoding='UTF-8', errors='ignore'))) if
                         not token.isdigit() and not token in cached_stop_words]
 
+                # doc_name = os.path.basename(filename)
+                parent_name, child_name = os.path.split(filename)
+                doc_name = os.path.split(parent_name)[-1] + '_' + child_name
                 for i in range(len(words)):
                     # doc-word frequency
-                    # doc_name = os.path.basename(filename)
-                    parent_name, child_name = os.path.split(filename)
-                    doc_name = os.path.split(parent_name)[-1] + '_' + child_name
                     try:
                         doc_word_freq[doc_name][words[i]] += 1
                     except:

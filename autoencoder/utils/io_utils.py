@@ -8,7 +8,24 @@ from __future__ import absolute_import
 
 import json
 import cPickle as pickle
+import marshal as m
 
+
+def dump_marshal(data, path_to_file):
+    try:
+        with open(path_to_file, 'w') as f:
+            m.dump(data, f)
+    except Exception as e:
+        raise e
+
+def load_marshal(path_to_file):
+    try:
+        with open(path_to_file, 'r') as f:
+            data = m.load(f)
+    except Exception as e:
+        raise e
+
+    return data
 
 def dump_pickle(data, path_to_file):
     try:
