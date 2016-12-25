@@ -9,7 +9,8 @@ import argparse
 from autoencoder.datasets.reuters import extract_labels
 from autoencoder.utils.io_utils import load_json
 
-if __name__ == '__main__':
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', '--label', type=str, required=True, help='path to the input label file')
     parser.add_argument('-c', '--corpus', type=str, required=True, help='path to the constructed corpus file')
@@ -18,3 +19,7 @@ if __name__ == '__main__':
 
     docs_names = load_json(args.corpus)['docs'].keys()
     extract_labels(docs_names, args.label, args.output)
+
+
+if __name__ == '__main__':
+    main()

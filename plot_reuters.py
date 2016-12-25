@@ -7,10 +7,10 @@ Created on Dec, 2016
 from __future__ import absolute_import
 import argparse
 
-from autoencoder.testing.visualize import reuters_visualize_pca_2d, plot_tsne
+from autoencoder.testing.visualize import reuters_visualize_pca_2d, reuters_visualize_tsne
 from autoencoder.utils.io_utils import load_json
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('doc_codes_file', type=str, help='path to the input corpus file')
     parser.add_argument('doc_labels_file', type=str, help='path to the output doc codes file')
@@ -19,14 +19,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     cmd = args.cmd.lower()
-
-    classes_to_visual = {'C15': 'PERFORMANCE', 'ECAT': 'ECONOMICS', 'MCAT': 'MARKETS',
+    classes_to_visual = {'ECAT': 'ECONOMICS', 'MCAT': 'MARKETS',
                         'CCAT': 'CORPORATE/INDUSTRIAL', 'GCAT': 'GOVERNMENT/SOCIAL'}
-
 
     if cmd == 'pca':
         reuters_visualize_pca_2d(load_json(args.doc_codes_file), load_json(args.doc_labels_file), classes_to_visual, args.output)
     elif cmd == 'tsne':
-        plot_tsne(load_json(args.doc_codes_file), load_json(args.doc_labels_file), classes_to_visual, args.output)
+        reuters_visualize_tsne(load_json(args.doc_codes_file), load_json(args.doc_labels_file), classes_to_visual, args.output)
 
 
+if __name__ == '__main__':
+    main()

@@ -60,15 +60,6 @@ class AutoEncoder(object):
         # input_layer = Dropout(.5)(input_layer)
         encoded = encoded_layer(input_layer)
 
-
-        # start_k = 200
-        # end_k = 40
-        # step_k = 2
-        # alpha = 1.0
-        # sparsity_level = {'topk': tf.Variable(70, name='topk')}
-        # sparsity_level = {'topk': self.dim}
-        # import pdb;pdb.set_trace()
-        # encoded = Lambda(self.kSparse, output_shape=(self.dim,), arguments={'sparsity': sparsity_level})(encoded)
         if self.comp_topk:
             print 'add k-competitive layer'
             encoded = KCompetitive(self.comp_topk)(encoded)
@@ -118,110 +109,6 @@ class AutoEncoder(object):
                                     ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.01),
                                     EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto'),
                                     # ModelCheckpoint(self.model_save_path, monitor='val_loss', save_best_only=True, verbose=0),
-                        ]
-                        )
-
-        return self
-
-    def fit_deepfit(self, train_X, val_X, sparse_topk=None, feature_weights=None, init_weights=None, weights_file=None):
-        print 'running deep autoencoder'
-        n_feature = train_X[0].shape[1]
-        h1_dim = 512
-
-        # this is our input placeholder
-        input_layer = Input(shape=(n_feature,))
-
-        # "encoded" is the encoded representation of the input
-        h1_layer = Dense(h1_dim, init='glorot_normal', activation='sigmoid')
-        encoded_layer = Dense(self.dim, init='glorot_normal', activation='sigmoid')
-
-        encoded = h1_layer(input_layer)
-
-        if sparse_topk:
-            encoded = KCompetitive(sparse_topk)(encoded)
-            print 'add k-competitive layer'
-
-        encoded = encoded_layer(encoded)
-
-        if sparse_topk:
-            encoded = KCompetitive(sparse_topk)(encoded)
-            print 'add k-competitive layer'
-
-        # "decoded" is the lossy reconstruction of the input
-        decoder_layer = Dense_tied(h1_dim, init='glorot_normal', activation='sigmoid', tied_to=encoded_layer)
-        rev_h1_layer = Dense_tied(n_feature, init='glorot_normal', activation='sigmoid', tied_to=h1_layer)
-        decoded = decoder_layer(encoded)
-
-        if sparse_topk:
-            decoded = KCompetitive(sparse_topk)(decoded)
-            print 'add k-competitive layer'
-
-        decoded = rev_h1_layer(decoded)
-        if sparse_topk:
-            decoded = KCompetitive(sparse_topk)(decoded)
-            print 'add k-competitive layer'
-
-
-
-        # Batch Normalization
-
-        # # "encoded" is the encoded representation of the input
-        # h1_layer = Dense(h1_dim, init='glorot_normal')
-        # encoded = h1_layer(input_layer)
-        # encoded = BatchNormalization((h1_dim,))(encoded)
-        # encoded = Activation('sigmoid')(encoded)
-
-
-        # encoded_layer = Dense(self.dim, init='glorot_normal')
-        # encoded = encoded_layer(encoded)
-        # encoded = BatchNormalization((self.dim,))(encoded)
-        # encoded = Activation('relu')(encoded)
-
-        # # "decoded" is the lossy reconstruction of the input
-        # decoder_layer = Dense_tied(h1_dim, init='glorot_normal', tied_to=encoded_layer)
-        # decoded = decoder_layer(encoded)
-        # decoded = BatchNormalization((h1_dim,))(decoded)
-        # decoded = Activation('relu')(decoded)
-
-
-        # rev_h1_layer = Dense_tied(n_feature, init='glorot_normal', tied_to=h1_layer)
-        # decoded = rev_h1_layer(decoded)
-        # decoded = BatchNormalization((n_feature,))(decoded)
-        # decoded = Activation('sigmoid')(decoded)
-
-
-        # this model maps an input to its reconstruction
-        self.autoencoder = Model(input=input_layer, output=decoded)
-
-
-        # this model maps an input to its encoded representation
-        self.encoder = Model(input=input_layer, output=encoded)
-
-        # create a placeholder for an encoded (32-dimensional) input
-        encoded_input = Input(shape=(self.dim,))
-
-        # create the decoder model
-        self.decoder = Model(input=encoded_input, output=rev_h1_layer(decoder_layer(encoded_input)))
-
-        optimizer = Adadelta(lr=1.0)
-        # optimizer = Adam()
-        # optimizer = Adagrad()
-        if feature_weights is None:
-            self.autoencoder.compile(optimizer=optimizer, loss='binary_crossentropy') # kld, binary_crossentropy, mse
-        else:
-            print 'using weighted loss'
-            self.autoencoder.compile(optimizer=optimizer, loss=weighted_binary_crossentropy(feature_weights)) # kld, binary_crossentropy, mse
-
-        # self.autoencoder.compile(optimizer=optimizer, loss='binary_crossentropy') # kld, binary_crossentropy, mse
-        self.autoencoder.fit(train_X[0], train_X[1],
-                        nb_epoch=self.nb_epoch,
-                        batch_size=self.batch_size,
-                        shuffle=True,
-                        validation_data=(val_X[0], val_X[1]),
-                        callbacks=[
-                                    ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.01),
-                                    EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto'),
-                                    ModelCheckpoint(self.model_save_path, monitor='val_loss', save_best_only=True, verbose=0),
                         ]
                         )
 
@@ -288,8 +175,8 @@ def save_model(model, arch_file, weights_file):
     model.autoencoder.save_weights(weights_file)
     dump_json(arch, arch_file)
 
-def load_model(arch_file, weights_file):
+def load_model(model, arch_file, weights_file):
     arch = load_json(arch_file)
-    ae = AutoEncoder(arch['input_size'], arch['dim'], comp_topk=arch['comp_topk'], weights_file=weights_file)
+    ae = model(arch['input_size'], arch['dim'], comp_topk=arch['comp_topk'], weights_file=weights_file)
 
     return ae

@@ -8,7 +8,8 @@ from __future__ import absolute_import
 import argparse
 import numpy as np
 
-from autoencoder.core.ae import AutoEncoder, load_model, save_model
+from autoencoder.core.ae import AutoEncoder, load_model
+from autoencoder.core.deepae import DeepAutoEncoder
 from autoencoder.preprocessing.preprocessing import load_corpus, doc2vec
 from autoencoder.utils.op_utils import vecnorm, revdict #, corrupted_matrix
 from autoencoder.utils.io_utils import dump_json, write_file
@@ -45,7 +46,9 @@ def test(args):
     corpus = load_corpus(args.input)
     vocab, docs = corpus['vocab'], corpus['docs']
     X_docs = np.r_[[vecnorm(doc2vec(x, len(vocab)), 'logmax1', 0) for x in docs.values()]]
-    ae = load_model(args.load_arch, args.load_weights)
+
+    model = AutoEncoder
+    ae = load_model(model, args.load_arch, args.load_weights)
 
     doc_codes = ae.encoder.predict(X_docs)
     dump_json(dict(zip(docs.keys(), doc_codes.tolist())), args.output)

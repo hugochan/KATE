@@ -10,6 +10,7 @@ from os import path
 import numpy as np
 
 from autoencoder.core.ae import AutoEncoder, load_model, save_model
+from autoencoder.core.deepae import DeepAutoEncoder
 from autoencoder.preprocessing.preprocessing import load_corpus, doc2vec, vocab_weights
 from autoencoder.utils.op_utils import vecnorm, corrupted_matrix
 from autoencoder.utils.io_utils import dump_json
@@ -40,7 +41,9 @@ def train(args):
     X_train_noisy = X_train
     X_val_noisy = X_val
 
-    ae = AutoEncoder(n_vocab, args.n_dim, comp_topk=args.comp_topk, weights_file=args.load_weights, \
+    model = AutoEncoder
+
+    ae = model(n_vocab, args.n_dim, comp_topk=args.comp_topk, weights_file=args.load_weights, \
             model_save_path=args.save_model)
     ae.fit([X_train_noisy, X_train], [X_val_noisy, X_val], nb_epoch=args.n_epoch, \
             batch_size=args.batch_size, feature_weights=feature_weights)

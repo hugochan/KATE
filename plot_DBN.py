@@ -10,7 +10,8 @@ import argparse
 from autoencoder.testing.visualize import DBN_visualize_pca_2d, DBN_plot_tsne
 from autoencoder.utils.io_utils import load_marshal
 
-if __name__ == '__main__':
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('doc_codes_file', type=str, help='path to the input corpus file')
     parser.add_argument('doc_labels_file', type=str, help='path to the output doc codes file')
@@ -39,3 +40,5 @@ if __name__ == '__main__':
     # plot_tsne(load_json(sys.argv[1]), load_json(sys.argv[2]), ['1143155', '889936', '1362719', '700733', '730708'])
     # visualize_pca_2d(load_json(sys.argv[1]), load_json(sys.argv[2]), ['2006', '2008', '2010', '2012'])
 
+if __name__ == '__main__':
+    main()
