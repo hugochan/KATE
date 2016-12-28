@@ -50,8 +50,8 @@ class DeepAutoEncoder(object):
         input_layer = Input(shape=(self.input_size,))
 
         # "encoded" is the encoded representation of the input
-        h1_layer = Dense(h1_dim, init='glorot_normal', activation='sigmoid')
-        encoded_layer = Dense(self.dim, init='glorot_normal', activation='sigmoid')
+        h1_layer = Dense(h1_dim, init='glorot_normal', activation='tanh')
+        encoded_layer = Dense(self.dim, init='glorot_normal', activation='tanh')
 
         encoded = h1_layer(input_layer)
 
@@ -60,9 +60,12 @@ class DeepAutoEncoder(object):
             print 'add k-competitive layer'
 
         encoded = encoded_layer(encoded)
+        if self.comp_topk:
+            encoded = KCompetitive(self.comp_topk)(encoded)
+            print 'add k-competitive layer'
 
         # "decoded" is the lossy reconstruction of the input
-        decoder_layer = Dense_tied(h1_dim, init='glorot_normal', activation='sigmoid', tied_to=encoded_layer)
+        decoder_layer = Dense_tied(h1_dim, init='glorot_normal', activation='tanh', tied_to=encoded_layer)
         rev_h1_layer = Dense_tied(self.input_size, init='glorot_normal', activation='sigmoid', tied_to=h1_layer)
         decoded = decoder_layer(encoded)
 

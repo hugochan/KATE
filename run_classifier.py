@@ -9,7 +9,7 @@ import argparse
 import numpy as np
 
 from autoencoder.testing.classifier import classifier
-from autoencoder.utils.io_utils import load_json
+from autoencoder.utils.io_utils import load_json, load_marshal
 
 def main():
     parser = argparse.ArgumentParser()
@@ -20,10 +20,16 @@ def main():
     parser.add_argument('-bs', '--batch_size', type=int, default=100, help='batch size (default 100)')
     args = parser.parse_args()
 
+    # autoencoder
     doc_codes = load_json(args.doc_codes)
     doc_labels = load_json(args.doc_labels)
     X = np.r_[doc_codes.values()]
     Y = [doc_labels[i] for i in doc_codes.keys()]
+
+    # # DBN
+    # X = np.array(load_marshal(args.doc_codes))
+    # Y = load_marshal(args.doc_labels)
+
     results = classifier(X, Y, n_splits=args.n_splits, nb_epoch=args.n_epoch, batch_size=args.batch_size)
     import pdb;pdb.set_trace()
 

@@ -48,6 +48,7 @@ def test(args):
     X_docs = np.r_[[vecnorm(doc2vec(x, len(vocab)), 'logmax1', 0) for x in docs.values()]]
 
     model = AutoEncoder
+    # model = DeepAutoEncoder
     ae = load_model(model, args.load_arch, args.load_weights)
 
     doc_codes = ae.encoder.predict(X_docs)

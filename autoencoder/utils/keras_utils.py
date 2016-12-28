@@ -10,7 +10,7 @@ from keras.callbacks import Callback
 import keras.backend as K
 from keras.engine import Layer
 import tensorflow as tf
-
+from keras import initializations
 
 class MyModelCheckpoint(Callback):
     '''Save the model after every epoch.
@@ -182,9 +182,42 @@ class KCompetitive(Layer):
         self.supports_masking = True
         super(KCompetitive, self).__init__(**kwargs)
 
+    def add_weight(self, shape, initializer, name=None,
+                   trainable=True,
+                   regularizer=None,
+                   constraint=None):
+        '''Adds a weight variable to the layer.
+        # Arguments:
+            shape: The shape tuple of the weight.
+            initializer: An Initializer instance (callable).
+            trainable: A boolean, whether the weight should
+                be trained via backprop or not (assuming
+                that the layer itself is also trainable).
+            regularizer: An optional Regularizer instance.
+        '''
+        initializer = initializations.get(initializer)
+        weight = initializer(shape, name=name)
+        if regularizer is not None:
+            self.add_loss(regularizer(weight))
+        if constraint is not None:
+            self.constraints[weight] = constraint
+        if trainable:
+            self._trainable_weights.append(weight)
+        else:
+            self._non_trainable_weights.append(weight)
+        return weight
+
+    # def build(self, input_shape):
+    #     # assert len(input_shape) >= 2
+    #     # input_dim = input_shape[-1]
+    #     # self.input_dim = input_dim
+    #     # import pdb;pdb.set_trace()
+    #     self.alpha = self.add_weight(( ), initializer='one')
+    #     self.built = True
+
     def call(self, x, mask=None):
         # res = K.in_train_phase(self.k_comp(x, self.topk), self.k_comp(x, self.topk)*1.5)
-        res = K.in_train_phase(self.k_comp_ind(x, self.topk), x)
+        res = K.in_train_phase(self.k_comp_abs(x, self.topk), x)
         return res
 
     def get_config(self):
@@ -192,19 +225,18 @@ class KCompetitive(Layer):
         base_config = super(KCompetitive, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
-    def k_comp_ind(self, x, topk):
-        print 'run k-competitive_ind with compensation'
+    def k_comp(self, x, topk):
+        print 'run k_comp'
         dim = int(x.get_shape()[1])
         if topk > dim:
             print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
             topk = dim
 
-        k = dim - topk
-        values, indices = tf.nn.top_k(-x, k) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
+        values, indices = tf.nn.top_k(x, topk) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
 
         # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
         my_range = tf.expand_dims(tf.range(0, tf.shape(indices)[0]), 1)  # will be [[0], [1]]
-        my_range_repeated = tf.tile(my_range, [1, k])  # will be [[0, 0], [1, 1]]
+        my_range_repeated = tf.tile(my_range, [1, topk])  # will be [[0, 0], [1, 1]]
 
         full_indices = tf.concat(2, [tf.expand_dims(my_range_repeated, 2), tf.expand_dims(indices, 2)])  # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
         full_indices = tf.reshape(full_indices, [-1, 2])
@@ -212,57 +244,55 @@ class KCompetitive(Layer):
         to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
 
         batch_size = tf.to_float(tf.shape(x)[0])
-        tmp = 1 * batch_size * tf.reduce_sum(to_reset, 1, keep_dims=True) / topk
-        # batch_size = tf.to_float(tf.shape(x)[0])
-        # tmp = 90 * tf.reduce_sum(to_reset) / topk / batch_size
+        tmp = 1 * batch_size * tf.reduce_sum(x - to_reset, 1, keep_dims=True) / topk
 
-        to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, tmp), [-1]), default_value=0., validate_indices=False)
-
-        res = tf.add(x, to_reset)
-
-        # preserve lost engery
-        # method 1) scale up
-        # res = float(dim) / topk * res
-
-        # method 2) add complement
-        res = tf.sub(res, tmp)
+        res = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, tmp), [-1]), default_value=0., validate_indices=False)
 
         return res
 
-    def k_comp(self, x, topk):
-        print 'run k-competitive with compensation'
-        # import pdb;pdb.set_trace()
+    def k_comp_abs(self, x, topk):
+        print 'run k_comp_abs'
         dim = int(x.get_shape()[1])
+        batch_size = tf.to_float(tf.shape(x)[0])
         if topk > dim:
             print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
             topk = dim
 
-        k = dim - topk
-        values, indices = tf.nn.top_k(-x, k) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
+        P = (x + tf.abs(x)) / 2
+        N = (x - tf.abs(x)) / 2
 
+        values, indices = tf.nn.top_k(P, topk / 2) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
         # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
         my_range = tf.expand_dims(tf.range(0, tf.shape(indices)[0]), 1)  # will be [[0], [1]]
-        my_range_repeated = tf.tile(my_range, [1, k])  # will be [[0, 0], [1, 1]]
-
+        my_range_repeated = tf.tile(my_range, [1, topk / 2])  # will be [[0, 0], [1, 1]]
         full_indices = tf.concat(2, [tf.expand_dims(my_range_repeated, 2), tf.expand_dims(indices, 2)])  # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
         full_indices = tf.reshape(full_indices, [-1, 2])
+        P_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
 
-        to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
 
-        tmp = tf.reduce_sum(to_reset) / topk
-        # batch_size = tf.to_float(tf.shape(x)[0])
-        # tmp = 90 * tf.reduce_sum(to_reset) / topk / batch_size
+        values2, indices2 = tf.nn.top_k(-N, topk - topk / 2)
+        my_range = tf.expand_dims(tf.range(0, tf.shape(indices2)[0]), 1)
+        my_range_repeated = tf.tile(my_range, [1, topk - topk / 2])
+        full_indices2 = tf.concat(2, [tf.expand_dims(my_range_repeated, 2), tf.expand_dims(indices2, 2)])  # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
+        full_indices2 = tf.reshape(full_indices2, [-1, 2])
+        N_reset = tf.sparse_to_dense(full_indices2, tf.shape(x), tf.reshape(values2, [-1]), default_value=0., validate_indices=False)
 
-        to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, tmp), [-1]), default_value=0., validate_indices=False)
 
-        res = tf.add(x, to_reset)
+        # 1)
+        # res = P_reset - N_reset
+        # tmp = 1 * batch_size * tf.reduce_sum(x - res, 1, keep_dims=True) / topk
 
-        # preserve lost engery
-        # method 1) scale up
-        # res = float(dim) / topk * res
+        # P_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, tf.abs(tmp)), [-1]), default_value=0., validate_indices=False)
+        # N_reset = tf.sparse_to_dense(full_indices2, tf.shape(x), tf.reshape(tf.add(values2, tf.abs(tmp)), [-1]), default_value=0., validate_indices=False)
 
-        # method 2) add complement
-        res = tf.sub(res, tmp)
+        # 2)
+        P_tmp = 1 * batch_size * tf.reduce_sum(P - P_reset, 1, keep_dims=True) / (topk / 2)
+        N_tmp = 1 * batch_size * tf.reduce_sum(-N - N_reset, 1, keep_dims=True) / (topk - topk / 2)
+        P_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, P_tmp), [-1]), default_value=0., validate_indices=False)
+        N_reset = tf.sparse_to_dense(full_indices2, tf.shape(x), tf.reshape(tf.add(values2, N_tmp), [-1]), default_value=0., validate_indices=False)
+
+
+        res = P_reset - N_reset
 
         return res
 

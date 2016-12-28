@@ -41,6 +41,7 @@ def train(args):
     X_train_noisy = X_train
     X_val_noisy = X_val
 
+    # model = DeepAutoEncoder
     model = AutoEncoder
 
     ae = model(n_vocab, args.n_dim, comp_topk=args.comp_topk, weights_file=args.load_weights, \

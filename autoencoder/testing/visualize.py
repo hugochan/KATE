@@ -87,7 +87,7 @@ def visualize_pca_2d(doc_codes, doc_labels, classes_to_visual, save_file):
     plt.title('Projected on the first 2 PCs')
     plt.xlabel('PC %s' % x_pc)
     plt.ylabel('PC %s' % y_pc)
-    legend = plt.legend(loc='upper center', shadow=True)
+    legend = plt.legend(loc='upper right', shadow=True)
     plt.savefig(save_file)
     plt.show()
 
@@ -146,7 +146,7 @@ def DBN_visualize_pca_2d(doc_codes, doc_labels, classes_to_visual, save_file):
     X = PCA(n_components=3).fit_transform(X)
     plt.figure(figsize=(10, 10), facecolor='white')
 
-    x_pc, y_pc = 0, 1
+    x_pc, y_pc = 1, 2
 
     for c in classes_to_visual.keys():
         idx = np.array(labels) == c
@@ -157,7 +157,7 @@ def DBN_visualize_pca_2d(doc_codes, doc_labels, classes_to_visual, save_file):
     plt.title('Projected on the first 2 PCs')
     plt.xlabel('PC %s' % x_pc)
     plt.ylabel('PC %s' % y_pc)
-    legend = plt.legend(loc='upper center', shadow=True)
+    # legend = plt.legend(loc='upper center', shadow=True)
     plt.savefig(save_file)
     plt.show()
 

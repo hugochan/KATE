@@ -49,10 +49,10 @@ class AutoEncoder(object):
 
         # "encoded" is the encoded representation of the input
         if init_weights is None:
-            encoded_layer = Dense(self.dim, init='glorot_normal', activation='sigmoid', name='Encoded_Layer')
+            encoded_layer = Dense(self.dim, init='glorot_normal', activation='tanh', name='Encoded_Layer')
             # encoded_layer = Dense(self.dim, init='glorot_normal', name='Encoded_Layer')
         else:
-            encoded_layer = Dense(self.dim, activation='sigmoid', weights=init_weights, name='Encoded_Layer')
+            encoded_layer = Dense(self.dim, activation='tanh', weights=init_weights, name='Encoded_Layer')
 
         # add a Dense layer with a L1 activity regularizer
         # encoded_layer = Dense(self.dim, init='normal', activation='relu',

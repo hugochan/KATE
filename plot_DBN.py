@@ -25,9 +25,12 @@ def main():
     # 20news
     class_names = ['alt.atheism', 'comp.graphics', 'comp.os.ms-windows.misc', 'comp.sys.ibm.pc.hardware', 'comp.sys.mac.hardware', 'comp.windows.x', 'misc.forsale', 'rec.autos', 'rec.motorcycles', 'rec.sport.baseball', 'rec.sport.hockey', 'sci.crypt', 'sci.electronics', 'sci.med', 'sci.space', 'soc.religion.christian', 'talk.politics.guns', 'talk.politics.mideast', 'talk.politics.misc', 'talk.religion.misc']
 
-    classes_to_visual = ["rec.sport.hockey", "comp.graphics", "sci.crypt", \
-                        "soc.religion.christian", "talk.politics.mideast", \
-                        "talk.politics.guns"]
+    classes_to_visual = ['comp.graphics', 'comp.os.ms-windows.misc', 'comp.sys.ibm.pc.hardware',
+                        'comp.sys.mac.hardware', 'comp.windows.x']
+    # classes_to_visual = class_names
+    # classes_to_visual = ["rec.sport.hockey", "comp.graphics", "sci.crypt", \
+    #                     "soc.religion.christian", "talk.politics.mideast", \
+    #                     "talk.politics.guns"]
     classes_to_visual = dict([(class_names.index(x), x) for x in classes_to_visual if x in class_names])
 
     if cmd == 'pca':

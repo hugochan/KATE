@@ -19,10 +19,13 @@ def main():
     args = parser.parse_args()
 
     cmd = args.cmd.lower()
+    # classes_to_visual = ["rec.sport.hockey", "comp.graphics", "sci.crypt", \
+                            # "soc.religion.christian", "talk.politics.mideast", \
+                            # "talk.politics.guns"]
 
-    classes_to_visual = ["rec.sport.hockey", "comp.graphics", "sci.crypt", \
-                            "soc.religion.christian", "talk.politics.mideast", \
-                            "talk.politics.guns"]
+    # classes_to_visual = ['comp.graphics', 'comp.os.ms-windows.misc', 'comp.sys.ibm.pc.hardware',
+                        # 'comp.sys.mac.hardware', 'comp.windows.x']
+    classes_to_visual = ['alt.atheism', 'comp.graphics', 'comp.os.ms-windows.misc', 'comp.sys.ibm.pc.hardware', 'comp.sys.mac.hardware', 'comp.windows.x', 'misc.forsale', 'rec.autos', 'rec.motorcycles', 'rec.sport.baseball', 'rec.sport.hockey', 'sci.crypt', 'sci.electronics', 'sci.med', 'sci.space', 'soc.religion.christian', 'talk.politics.guns', 'talk.politics.mideast', 'talk.politics.misc', 'talk.religion.misc']
 
     # 20news
     if cmd == 'pca':

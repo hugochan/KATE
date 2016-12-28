@@ -26,7 +26,7 @@ def classifier(X, Y, n_splits=10, nb_epoch=200, batch_size=10, seed=7):
     encoder.fit(Y)
     Y = encoder.transform(Y)
     Y = np_utils.to_categorical(Y)
-    estimator = KerasClassifier(build_fn=basemodel, input_size=X.shape[1], n_class=Y.shape[1], nb_epoch=nb_epoch, batch_size=batch_size, verbose=0)
+    estimator = KerasClassifier(build_fn=basemodel, input_size=X.shape[1], n_class=Y.shape[1], nb_epoch=nb_epoch, batch_size=batch_size, verbose=2)
     kfold = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
     results = cross_val_score(estimator, X, Y, cv=kfold)
     print "accuracy: %.2f%% (%.2f%%)" % (results.mean() * 100, results.std() * 100)
