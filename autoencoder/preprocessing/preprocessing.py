@@ -14,7 +14,7 @@ from nltk.tokenize import wordpunct_tokenize
 from nltk.stem.porter import PorterStemmer as EnglishStemmer
 # from nltk.tokenize import RegexpTokenizer
 
-from ..utils.io_utils import dump_json, load_json
+from ..utils.io_utils import dump_json, load_json, write_file
 
 
 def load_stopwords(file):
@@ -136,6 +136,16 @@ def construct_train_test_corpus(train_path, test_path, output, threshold=5, topn
     print 'Generated test corpus'
 
     return train_corpus, test_corpus
+
+def corpus2libsvm(docs, output):
+    '''Convert the corpus format to libsvm format.
+    '''
+    data = []
+    for key, val in docs.iteritems():
+        line = [key] + ["%s:%s" % (int(x) + 1, y) for x, y in val.iteritems()]
+        data.append(line)
+    write_file(data, output)
+    return data
 
 def doc2vec(doc, dim):
     vec = np.zeros(dim)
