@@ -137,12 +137,13 @@ def construct_train_test_corpus(train_path, test_path, output, threshold=5, topn
 
     return train_corpus, test_corpus
 
-def corpus2libsvm(docs, output):
+def corpus2libsvm(docs, doc_labels, output):
     '''Convert the corpus format to libsvm format.
     '''
     data = []
     for key, val in docs.iteritems():
-        line = [key] + ["%s:%s" % (int(x) + 1, y) for x, y in val.iteritems()]
+        label = doc_labels[key]
+        line = label if isinstance(label, list) else [label] + ["%s:%s" % (int(x) + 1, y) for x, y in val.iteritems()]
         data.append(line)
     write_file(data, output)
     return data
