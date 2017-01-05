@@ -22,22 +22,18 @@ def train(args):
     n_vocab = len(vocab)
     n_docs = len(docs)
 
-    X_docs = np.r_[[vecnorm(doc2vec(x, n_vocab), 'logmax1', 0) for x in docs.values()]]
-    # X_docs_noisy = corrupted_matrix(X_docs, corruption_ratio=.1)
+    X_docs = [vecnorm(doc2vec(x, n_vocab), 'logmax1', 0) for x in docs.values()]
 
     # Prepare feature_weights for weighted loss
-    # feature_weights = None
-    feature_weights = vecnorm(vocab_weights(vocab, word_freq, max_=100., ratio=.75), 'prob', 0)
+    feature_weights = None
+    # feature_weights = vecnorm(vocab_weights(vocab, word_freq, max_=100., ratio=.75), 'prob', 0)
 
     np.random.seed(0)
-    train_ratio = .9
-    train_idx = np.random.choice(range(n_docs), int(n_docs * train_ratio), replace=False)
-    val_idx = list(set(range(n_docs)) - set(train_idx))
-    X_train = X_docs[train_idx]
-    X_val = X_docs[val_idx]
+    np.random.shuffle(X_docs)
+    n_val = 1000
+    X_train = np.r_[X_docs[:-n_val]]
+    X_val = np.r_[X_docs[-n_val:]]
 
-    # X_train_noisy = X_docs_noisy[train_idx]
-    # X_val_noisy = X_docs_noisy[val_idx]
     X_train_noisy = X_train
     X_val_noisy = X_val
 

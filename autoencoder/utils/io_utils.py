@@ -66,3 +66,14 @@ def write_file(data, file):
                 datafile.write(' '.join(line) + '\n')
     except Exception as e:
         raise e
+
+def load_file(file):
+    data = []
+    try:
+        with open(file, 'r') as datafile:
+            for line in datafile:
+                data.append(line.strip('\n').split())
+    except Exception as e:
+        raise e
+
+    return data

@@ -217,6 +217,7 @@ class KCompetitive(Layer):
 
     def call(self, x, mask=None):
         # res = K.in_train_phase(self.k_comp(x, self.topk), self.k_comp(x, self.topk)*1.5)
+        # res = K.in_train_phase(self.kSparse(x, self.topk), x)
         res = K.in_train_phase(self.k_comp_abs(x, self.topk), x)
         return res
 

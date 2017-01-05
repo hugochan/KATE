@@ -54,16 +54,11 @@ class AutoEncoder(object):
         else:
             encoded_layer = Dense(self.dim, activation='tanh', weights=init_weights, name='Encoded_Layer')
 
-        # add a Dense layer with a L1 activity regularizer
-        # encoded_layer = Dense(self.dim, init='normal', activation='relu',
-                        # activity_regularizer=regularizers.activity_l1(1e-2))
-        # input_layer = Dropout(.5)(input_layer)
         encoded = encoded_layer(input_layer)
 
         if self.comp_topk:
             print 'add k-competitive layer'
             encoded = KCompetitive(self.comp_topk)(encoded)
-        # encoded = Dropout(.2)(encoded)
         # encoded = Activation('sigmoid')(encoded)
 
 

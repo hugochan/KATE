@@ -141,12 +141,15 @@ def corpus2libsvm(docs, doc_labels, output):
     '''Convert the corpus format to libsvm format.
     '''
     data = []
+    names = []
     for key, val in docs.iteritems():
         label = doc_labels[key]
         line = label if isinstance(label, list) else [label] + ["%s:%s" % (int(x) + 1, y) for x, y in val.iteritems()]
         data.append(line)
+        names.append(key)
     write_file(data, output)
-    return data
+    write_file(names, output + '.fnames')
+    return data, names
 
 def doc2vec(doc, dim):
     vec = np.zeros(dim)
