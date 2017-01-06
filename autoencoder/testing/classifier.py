@@ -5,14 +5,10 @@ Created on Dec, 2016
 
 '''
 from __future__ import absolute_import
+import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.utils import np_utils
-from keras.wrappers.scikit_learn import KerasClassifier
-from sklearn.model_selection import cross_val_score
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import KFold
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
 
 def neural_network(input_size, n_class):
@@ -22,25 +18,18 @@ def neural_network(input_size, n_class):
 
     return model
 
-def cv_classifier(X, Y, n_splits=10, nb_epoch=200, batch_size=10, seed=7):
-    encoder = LabelEncoder()
-    encoder.fit(Y)
-    Y = encoder.transform(Y)
-    Y = np_utils.to_categorical(Y)
-    estimator = KerasClassifier(build_fn=neural_network, input_size=X.shape[1], n_class=Y.shape[1], nb_epoch=nb_epoch, batch_size=batch_size, verbose=2)
-    kfold = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
-    acc = cross_val_score(estimator, X, Y, cv=kfold)
-    print "accuracy: %.2f%% (%.2f%%)" % (acc.mean() * 100, acc.std() * 100)
-    return acc
+def neural_classifier(X_train, Y_train, X_val, Y_val, X_test, Y_test, nb_epoch=200, batch_size=10, seed=7):
+    clf = neural_network(X_train.shape[1], Y_train.shape[1])
+    clf.fit(X_train, Y_train,
+                        nb_epoch=nb_epoch,
+                        batch_size=batch_size,
+                        shuffle=True,
+                        validation_data=(X_val, Y_val),
+                        callbacks=[
+                                    ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.01),
+                                    EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=0, mode='auto'),
+                        ]
+                        )
+    acc = clf.test_on_batch(X_test, Y_test)[1]
 
-def classifier(X_train, Y_train, X_test, Y_test, nb_epoch=200, batch_size=10, seed=7):
-    encoder = LabelEncoder()
-    encoder.fit(Y_train)
-    Y_train = np_utils.to_categorical(encoder.transform(Y_train))
-    Y_test = np_utils.to_categorical(encoder.transform(Y_test))
-    estimator = KerasClassifier(build_fn=neural_network, input_size=X_train.shape[1], n_class=Y_train.shape[1], nb_epoch=nb_epoch, batch_size=batch_size, verbose=2)
-    estimator.fit(X_train, Y_train)
-    acc = estimator.score(X_test, Y_test)
-    print "accuracy: %s" % acc
     return acc
-
