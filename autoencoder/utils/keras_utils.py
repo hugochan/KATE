@@ -217,7 +217,8 @@ class KCompetitive(Layer):
 
     def call(self, x, mask=None):
         # res = K.in_train_phase(self.kSparse(x, self.topk), x)
-        res = K.in_train_phase(self.k_comp_tanh(x, self.topk), x)
+        # res = K.in_train_phase(self.k_comp_tanh(x, self.topk), x)
+        res = K.in_train_phase(self.k_comp_tanh_strict(x, self.topk), x)
         return res
 
     def get_config(self):
@@ -253,7 +254,7 @@ class KCompetitive(Layer):
     def k_comp_tanh(self, x, topk):
         print 'run k_comp_tanh'
         dim = int(x.get_shape()[1])
-        batch_size = tf.to_float(tf.shape(x)[0])
+        # batch_size = tf.to_float(tf.shape(x)[0])
         if topk > dim:
             print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
             topk = dim
@@ -294,6 +295,45 @@ class KCompetitive(Layer):
         N_reset = tf.sparse_to_dense(full_indices2, tf.shape(x), tf.reshape(tf.add(values2, N_tmp), [-1]), default_value=0., validate_indices=False)
 
 
+        res = P_reset - N_reset
+
+        return res
+
+    def k_comp_tanh_strict(self, x, topk):
+        print 'run k_comp_tanh_strict'
+        dim = int(x.get_shape()[1])
+        # batch_size = tf.to_float(tf.shape(x)[0])
+        if topk > dim:
+            print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
+            topk = dim
+
+        x_abs = tf.abs(x)
+        P = (x + x_abs) / 2 # positive part of x
+        N = (x - x_abs) / 2 # negative part of x
+
+        values, indices = tf.nn.top_k(x_abs, topk) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
+        # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
+        my_range = tf.expand_dims(tf.range(0, tf.shape(indices)[0]), 1)  # will be [[0], [1]]
+        my_range_repeated = tf.tile(my_range, [1, topk])  # will be [[0, 0], [1, 1]]
+        full_indices = tf.concat(2, [tf.expand_dims(my_range_repeated, 2), tf.expand_dims(indices, 2)])  # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
+        full_indices = tf.reshape(full_indices, [-1, 2])
+        x_topk_mask = tf.sparse_to_dense(full_indices, tf.shape(x), tf.ones([tf.shape(full_indices)[0], ], tf.float32), default_value=0., validate_indices=False)
+
+        P_select = tf.multiply(P, x_topk_mask)
+        N_select = tf.multiply(-N, x_topk_mask)
+
+        zero = tf.constant(0., dtype=tf.float32)
+        P_indices = tf.cast(tf.where(tf.not_equal(P_select, zero)), tf.int32)
+        N_indices = tf.cast(tf.where(tf.not_equal(N_select, zero)), tf.int32)
+        P_mask = tf.sparse_to_dense(P_indices, tf.shape(x), tf.ones([tf.shape(P_indices)[0], ], tf.float32), default_value=0., validate_indices=False)
+        N_mask = tf.sparse_to_dense(N_indices, tf.shape(x), tf.ones([tf.shape(N_indices)[0], ], tf.float32), default_value=0., validate_indices=False)
+
+        alpha = 10.
+        P_complement = alpha * tf.reduce_sum(P - P_select, 1, keep_dims=True)# / tf.cast(tf.shape(P_indices)[0], tf.float32) # 6.26
+        N_complement = alpha * tf.reduce_sum(-N - N_select, 1, keep_dims=True)# / tf.cast(tf.shape(N_indices)[0], tf.float32)
+
+        P_reset = tf.multiply(tf.add(P_select, P_complement), P_mask)
+        N_reset = tf.multiply(tf.add(N_select, N_complement), N_mask)
         res = P_reset - N_reset
 
         return res
