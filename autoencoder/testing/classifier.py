@@ -8,6 +8,7 @@ from __future__ import absolute_import
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
+# from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
 

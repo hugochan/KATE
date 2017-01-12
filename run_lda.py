@@ -10,8 +10,8 @@ from os import path
 import numpy as np
 
 from autoencoder.preprocessing.preprocessing import load_corpus
-from autoencoder.utils.io_utils import dump_json
-from autoencoder.baseline.lda import *
+from autoencoder.utils.io_utils import dump_json, write_file
+from autoencoder.baseline.lda import train_lda, generate_doc_codes, load_model, show_topics
 
 def train(args):
     corpus = load_corpus(args.corpus)
@@ -26,6 +26,7 @@ def train(args):
     train_lda(doc_bow, vocab_dict, args.n_topics, args.save_model)
 
 def test(args):
+    n_topics = args.n_topics
     docs = load_corpus(args.corpus)['docs']
     doc_bow = {}
     for key, each in docs.iteritems():
@@ -35,7 +36,11 @@ def test(args):
         doc_bow[key]= bows
 
     lda = load_model(args.load_model)
-    generate_doc_codes(lda, doc_bow, args.n_topics, args.output)
+    generate_doc_codes(lda, doc_bow, n_topics, args.output)
+    if args.save_topics:
+        topics = show_topics(lda, n_topics)
+        write_file(topics, args.save_topics)
+        print 'Saved topics file to %s' % args.save_topics
 
 def main():
     parser = argparse.ArgumentParser()
@@ -45,6 +50,7 @@ def main():
     parser.add_argument('-sm', '--save_model', type=str, default='lda.mod', help='path to the output model')
     parser.add_argument('-lm', '--load_model', type=str, help='path to the trained model')
     parser.add_argument('-o', '--output', type=str, help='path to the output doc codes file')
+    parser.add_argument('-st', '--save_topics', type=str, help='path to the output topics file')
     args = parser.parse_args()
 
     if args.train:

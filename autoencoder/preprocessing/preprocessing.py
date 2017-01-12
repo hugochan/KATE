@@ -34,7 +34,7 @@ def get_all_files(corpus_path, recursive=False):
     else:
         return [os.path.join(corpus_path, filename) for filename in os.listdir(corpus_path) if os.path.isfile(os.path.join(corpus_path, filename)) and not filename.startswith('.')]
 
-def load_data(corpus_path, recursive=False):
+def load_data(corpus_path, recursive=False, stem=True):
     word_freq = defaultdict(lambda: 0) # count the number of times a word appears in a corpus
     doc_word_freq = defaultdict(dict) # count the number of times a word appears in a doc
     files = get_all_files(corpus_path, recursive)
@@ -56,7 +56,7 @@ def load_data(corpus_path, recursive=False):
                 text = fp.read().lower()
                 # words = [word for word in word_tokenizer.tokenize(text) if word not in cached_stop_words]
                 # remove punctuations, stopwords and *unnecessary digits*, stemming
-                words = [stemmer.stem(token) for token in wordpunct_tokenize(
+                words = [stemmer.stem(token) if stem else token for token in wordpunct_tokenize(
                         re.sub('[%s]' % re.escape(string.punctuation), ' ', text.decode(encoding='UTF-8', errors='ignore'))) if
                         not token.isdigit() and not token in cached_stop_words]
 

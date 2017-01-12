@@ -216,9 +216,8 @@ class KCompetitive(Layer):
     #     self.built = True
 
     def call(self, x, mask=None):
-        # res = K.in_train_phase(self.k_comp(x, self.topk), self.k_comp(x, self.topk)*1.5)
         # res = K.in_train_phase(self.kSparse(x, self.topk), x)
-        res = K.in_train_phase(self.k_comp_abs(x, self.topk), x)
+        res = K.in_train_phase(self.k_comp_tanh(x, self.topk), x)
         return res
 
     def get_config(self):
@@ -226,8 +225,8 @@ class KCompetitive(Layer):
         base_config = super(KCompetitive, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
-    def k_comp(self, x, topk):
-        print 'run k_comp'
+    def k_comp_sigm(self, x, topk):
+        print 'run k_comp_sigm'
         dim = int(x.get_shape()[1])
         if topk > dim:
             print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
@@ -251,8 +250,8 @@ class KCompetitive(Layer):
 
         return res
 
-    def k_comp_abs(self, x, topk):
-        print 'run k_comp_abs'
+    def k_comp_tanh(self, x, topk):
+        print 'run k_comp_tanh'
         dim = int(x.get_shape()[1])
         batch_size = tf.to_float(tf.shape(x)[0])
         if topk > dim:
@@ -287,8 +286,10 @@ class KCompetitive(Layer):
         # N_reset = tf.sparse_to_dense(full_indices2, tf.shape(x), tf.reshape(tf.add(values2, tf.abs(tmp)), [-1]), default_value=0., validate_indices=False)
 
         # 2)
-        P_tmp = 1 * batch_size * tf.reduce_sum(P - P_reset, 1, keep_dims=True) / (topk / 2)
-        N_tmp = 1 * batch_size * tf.reduce_sum(-N - N_reset, 1, keep_dims=True) / (topk - topk / 2)
+        P_tmp = 6.26 * tf.reduce_sum(P - P_reset, 1, keep_dims=True) # 6.26
+        N_tmp = 6.26 * tf.reduce_sum(-N - N_reset, 1, keep_dims=True)
+        # P_tmp = 1 * batch_size * tf.reduce_sum(P - P_reset, 1, keep_dims=True) / (topk / 2)
+        # N_tmp = 1 * batch_size * tf.reduce_sum(-N - N_reset, 1, keep_dims=True) / (topk - topk / 2)
         P_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, P_tmp), [-1]), default_value=0., validate_indices=False)
         N_reset = tf.sparse_to_dense(full_indices2, tf.shape(x), tf.reshape(tf.add(values2, N_tmp), [-1]), default_value=0., validate_indices=False)
 

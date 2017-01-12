@@ -21,7 +21,6 @@ def train(args):
     vocab, docs, word_freq = corpus['vocab'], corpus['docs'], corpus['word_freq']
     n_vocab = len(vocab)
     n_docs = len(docs)
-
     X_docs = [vecnorm(doc2vec(x, n_vocab), 'logmax1', 0) for x in docs.values()]
 
     # Prepare feature_weights for weighted loss
@@ -30,18 +29,21 @@ def train(args):
 
     np.random.seed(0)
     np.random.shuffle(X_docs)
+    X_docs_noisy = corrupted_matrix(np.r_[X_docs], 0.1)
+
     n_val = 1000
     X_train = np.r_[X_docs[:-n_val]]
     X_val = np.r_[X_docs[-n_val:]]
 
-    X_train_noisy = X_train
-    X_val_noisy = X_val
+    # X_train_noisy = X_train
+    # X_val_noisy = X_val
+    X_train_noisy = X_docs_noisy[:-n_val]
+    X_val_noisy = X_docs_noisy[-n_val:]
 
     # model = DeepAutoEncoder
     model = AutoEncoder
 
-    ae = model(n_vocab, args.n_dim, comp_topk=args.comp_topk, weights_file=args.load_weights, \
-            model_save_path=args.save_model)
+    ae = model(n_vocab, args.n_dim, comp_topk=args.comp_topk, weights_file=args.load_weights)
     ae.fit([X_train_noisy, X_train], [X_val_noisy, X_val], nb_epoch=args.n_epoch, \
             batch_size=args.batch_size, feature_weights=feature_weights)
 

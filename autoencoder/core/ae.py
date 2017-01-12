@@ -13,7 +13,7 @@ from keras.optimizers import Adadelta, Adam, Adagrad
 from keras.models import load_model
 from keras import regularizers
 import keras.backend as K
-from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.layers.core import Activation
 # from keras.layers.normalization import BatchNormalization
 import tensorflow as tf
@@ -34,33 +34,24 @@ class AutoEncoder(object):
 
         """
 
-    def __init__(self, input_size, dim, comp_topk=None, \
-        init_weights=None, weights_file=None, model_save_path='./'):
+    def __init__(self, input_size, dim, comp_topk=None, weights_file=None):
         self.input_size = input_size
         self.dim = dim
         self.comp_topk = comp_topk
-        self.model_save_path = model_save_path
 
-        self.build(init_weights, weights_file)
+        self.build(weights_file)
 
-    def build(self, init_weights=None, weights_file=None):
+    def build(self, weights_file=None):
         # this is our input placeholder
         input_layer = Input(shape=(self.input_size,))
 
         # "encoded" is the encoded representation of the input
-        if init_weights is None:
-            encoded_layer = Dense(self.dim, init='glorot_normal', activation='tanh', name='Encoded_Layer')
-            # encoded_layer = Dense(self.dim, init='glorot_normal', name='Encoded_Layer')
-        else:
-            encoded_layer = Dense(self.dim, activation='tanh', weights=init_weights, name='Encoded_Layer')
-
+        encoded_layer = Dense(self.dim, init='glorot_normal', activation='tanh', name='Encoded_Layer')
         encoded = encoded_layer(input_layer)
 
         if self.comp_topk:
             print 'add k-competitive layer'
             encoded = KCompetitive(self.comp_topk)(encoded)
-        # encoded = Activation('sigmoid')(encoded)
-
 
         # "decoded" is the lossy reconstruction of the input
         # add non-negativity contraint to ensure probabilistic interpretations
@@ -86,7 +77,7 @@ class AutoEncoder(object):
 
     def fit(self, train_X, val_X, nb_epoch=50, batch_size=100, feature_weights=None):
         print 'Training autoencoder'
-        optimizer = Adadelta(lr=1.5)
+        optimizer = Adadelta(lr=2.5)
         # optimizer = Adam()
         # optimizer = Adagrad()
         if feature_weights is None:
@@ -103,7 +94,6 @@ class AutoEncoder(object):
                         callbacks=[
                                     ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.01),
                                     EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto'),
-                                    # ModelCheckpoint(self.model_save_path, monitor='val_loss', save_best_only=True, verbose=0),
                         ]
                         )
 
@@ -156,8 +146,7 @@ class AutoEncoder(object):
                         batch_size=self.batch_size,
                         shuffle=True,
                         validation_data=(val_X[0], val_X[1]),
-                        callbacks=[EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto'),
-                                    # ModelCheckpoint(self.model_save_path, monitor='val_loss', save_best_only=True, verbose=0),
+                        callbacks=[EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto')
                         ]
                         )
 

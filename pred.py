@@ -11,7 +11,7 @@ import numpy as np
 from autoencoder.core.ae import AutoEncoder, load_model
 from autoencoder.core.deepae import DeepAutoEncoder
 from autoencoder.preprocessing.preprocessing import load_corpus, doc2vec
-from autoencoder.utils.op_utils import vecnorm, revdict #, corrupted_matrix
+from autoencoder.utils.op_utils import vecnorm, revdict, unitmatrix #, corrupted_matrix
 from autoencoder.utils.io_utils import dump_json, write_file
 
 # def get_topics(ae, vocab, topn=10):
@@ -25,6 +25,14 @@ from autoencoder.utils.io_utils import dump_json, write_file
 #         topics.append(topic)
 
 #     return topics
+
+def get_similar_words(ae, query_id, vocab, topn=10):
+    weights = ae.encoder.get_weights()[0]
+    weights = unitmatrix(weights) # normalize
+    query = weights[query_id]
+    score = query.dot(weights.T)
+    vidx = score.argsort()[::-1][:topn]
+    return [vocab[idx] for idx in vidx]
 
 def get_topics(ae, vocab, topn=10):
     topics = []
@@ -45,6 +53,7 @@ def print_topics(topics):
 def test(args):
     corpus = load_corpus(args.input)
     vocab, docs = corpus['vocab'], corpus['docs']
+    import pdb;pdb.set_trace()
     X_docs = np.r_[[vecnorm(doc2vec(x, len(vocab)), 'logmax1', 0) for x in docs.values()]]
 
     model = AutoEncoder
@@ -60,11 +69,21 @@ def test(args):
         write_file(topics, args.save_topics)
         print 'Saved topics file to %s' % args.save_topics
 
+    if args.sample_words:
+        queries = ['weapon', 'christian', 'compani', 'israel', 'law', 'hockey', 'comput', 'space']
+        words = []
+        for each in queries:
+            words.append(get_similar_words(ae, vocab[each], revdict(vocab), topn=11))
+        write_file(words, args.sample_words)
+        print 'Saved sample words file to %s' % args.sample_words
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', type=str, required=True, help='path to the input corpus file')
     parser.add_argument('-o', '--output', type=str, required=True, help='path to the output doc codes file')
     parser.add_argument('-st', '--save_topics', type=str, help='path to the output topics file')
+    parser.add_argument('-sw', '--sample_words', type=str, help='path to the output sample words file')
     parser.add_argument('-la', '--load_arch', type=str, required=True, help='path to the trained arch file')
     parser.add_argument('-lw', '--load_weights', type=str, required=True, help='path to the trained weights file')
     args = parser.parse_args()

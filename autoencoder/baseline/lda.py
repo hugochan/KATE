@@ -25,8 +25,9 @@ def generate_doc_codes(model, corpus, n_topics, output):
     dump_json(doc_codes, output)
     return doc_codes
 
-def show_topics(model, n_topics, n_words_per_topic):
-    print model.print_topics(num_topics=n_topics, num_words=n_words_per_topic)
+def show_topics(model, n_topics, n_words_per_topic=10):
+    topics = [zip(*model.show_topic(i, n_words_per_topic))[0] for i in range(n_topics)]
+    return topics
 
 def load_model(model_file):
     return LdaModel.load(model_file)
