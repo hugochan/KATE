@@ -77,7 +77,7 @@ class AutoEncoder(object):
 
     def fit(self, train_X, val_X, nb_epoch=50, batch_size=100, feature_weights=None):
         print 'Training autoencoder'
-        optimizer = Adadelta(lr=2.5)
+        optimizer = Adadelta(lr=2.)
         # optimizer = Adam()
         # optimizer = Adagrad()
         if feature_weights is None:

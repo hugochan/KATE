@@ -10,7 +10,7 @@ from os import path
 import numpy as np
 
 from autoencoder.core.ae import AutoEncoder, load_model, save_model
-from autoencoder.core.deepae import DeepAutoEncoder
+# from autoencoder.core.deepae import DeepAutoEncoder
 from autoencoder.preprocessing.preprocessing import load_corpus, doc2vec, vocab_weights
 from autoencoder.utils.op_utils import vecnorm, corrupted_matrix
 from autoencoder.utils.io_utils import dump_json
@@ -29,16 +29,16 @@ def train(args):
 
     np.random.seed(0)
     np.random.shuffle(X_docs)
-    X_docs_noisy = corrupted_matrix(np.r_[X_docs], 0.1)
+    # X_docs_noisy = corrupted_matrix(np.r_[X_docs], 0.1)
 
-    n_val = 1000
+    n_val = args.n_val
     X_train = np.r_[X_docs[:-n_val]]
     X_val = np.r_[X_docs[-n_val:]]
 
-    # X_train_noisy = X_train
-    # X_val_noisy = X_val
-    X_train_noisy = X_docs_noisy[:-n_val]
-    X_val_noisy = X_docs_noisy[-n_val:]
+    X_train_noisy = X_train
+    X_val_noisy = X_val
+    # X_train_noisy = X_docs_noisy[:-n_val]
+    # X_val_noisy = X_docs_noisy[-n_val:]
 
     # model = DeepAutoEncoder
     model = AutoEncoder
@@ -60,6 +60,7 @@ def main():
     parser.add_argument('-nd', '--n_dim', type=int, default=128, help='num of dimensions (default 128)')
     parser.add_argument('-ne', '--n_epoch', type=int, default=100, help='num of epoches (default 100)')
     parser.add_argument('-bs', '--batch_size', type=int, default=100, help='batch size (default 100)')
+    parser.add_argument('-nv', '--n_val', type=int, default=1000, help='size of validation set (default 1000)')
     parser.add_argument('-ck', '--comp_topk', type=int, help='competitive topk')
     parser.add_argument('-lw', '--load_weights', type=str, help='path to the pretrained weights file')
     parser.add_argument('-sm', '--save_model', type=str, default='model', help='path to the output model')

@@ -1,5 +1,5 @@
 '''
-Created on Dec, 2016
+Created on Jan, 2017
 
 @author: hugo
 
@@ -10,29 +10,30 @@ import re
 from collections import Counter, defaultdict
 import numpy as np
 
-from ..preprocessing.preprocessing import build_vocab, generate_bow
+from ..preprocessing.preprocessing import build_vocab, generate_bow, tiny_tokenize, init_stopwords
 from ..utils.io_utils import dump_json
 
 
-def load_data(path_list, test_split, seed=666):
-    '''Loads the Reuters RCV1-v2 newswire dataset.
+def load_data(file, test_split, seed=666, stem=False):
+    '''Loads the Movie Review Data (https://www.cs.cornell.edu/people/pabo/movie-review-data/).
 
     @Params
-        path_list : a list of file paths
+        file : path to the file.
         test_split : fraction of the dataset to be used as test data.
         seed : random seed for sample shuffling.
     '''
     # count the number of times a word appears in a doc
-    corpus = {}
-    for path in path_list:
-        with open(path, 'r') as f:
-            texts = re.split('\n\s*\n', f.read())[:-1]
-            for block in texts:
-                tmp = block.split('\n')
-                did = tmp[0].split(' ')[-1]
-                count = Counter((' '.join(tmp[2:])).split())
-                corpus[did] = dict(count) # doc-word frequency
+    cached_stop_words = init_stopwords()
 
+    corpus = {}
+    labels = {}
+    with open(file, 'r') as f:
+        for line in f:
+            idx, rating, subj = line.split('\t')
+            words = tiny_tokenize(subj.lower(), stem=stem, stop_words=cached_stop_words)
+            count = Counter(words)
+            corpus[idx] = dict(count) # doc-word frequency
+            labels[idx] = float(rating)
     corpus = corpus.items()
     np.random.seed(seed)
     np.random.shuffle(corpus)
@@ -40,8 +41,10 @@ def load_data(path_list, test_split, seed=666):
     n_docs = len(corpus)
     train_data = dict(corpus[:-int(n_docs * test_split)])
     test_data = dict(corpus[-int(n_docs * test_split):])
+    train_labels = dict([(idx, labels[idx]) for idx in train_data.keys()])
+    test_labels = dict([(idx, labels[idx]) for idx in test_data.keys()])
 
-    return train_data, test_data
+    return train_data, train_labels, test_data, test_labels
 
 def count_words(docs):
     # count the number of times a word appears in a corpus
@@ -64,30 +67,22 @@ def construct_corpus(doc_word_freq, word_freq, training_phase, vocab_dict=None, 
 
     return docs, vocab_dict, new_word_freq
 
-def construct_train_test_corpus(path_list, test_split, output, threshold=10, topn=20000):
-    train_data, test_data = load_data(path_list, test_split)
+def construct_train_test_corpus(file, test_split, output, threshold=10, topn=20000):
+    train_data, train_labels, test_data, test_labels = load_data(file, test_split)
     train_word_freq = count_words(train_data.values())
 
     train_docs, vocab_dict, train_word_freq = construct_corpus(train_data, train_word_freq, True, threshold=threshold, topn=topn)
     train_corpus = {'docs': train_docs, 'vocab': vocab_dict, 'word_freq': train_word_freq}
     dump_json(train_corpus, os.path.join(output, 'train.corpus'))
     print 'Generated training corpus'
+    dump_json(train_labels, os.path.join(output, 'train.labels'))
+    print 'Generated training labels'
 
     test_word_freq = count_words(test_data.values())
     test_docs, _, _ = construct_corpus(test_data, test_word_freq, False, vocab_dict=vocab_dict)
     test_corpus = {'docs': test_docs, 'vocab': vocab_dict}
     dump_json(test_corpus, os.path.join(output, 'test.corpus'))
     print 'Generated test corpus'
-
-def extract_labels(docs, path, output):
-    doc_labels = defaultdict(set)
-    with open(path, 'r') as f:
-        for line in f:
-            label, did, _ = line.strip('\n').split()
-            if did in docs:
-                doc_labels[did].add(label)
-    doc_labels = dict([(x, list(y)) for x, y in doc_labels.iteritems()])
-
-    dump_json(doc_labels, output)
-
-    return doc_labels
+    dump_json(test_labels, os.path.join(output, 'test.labels'))
+    print 'Generated test labels'
+    import pdb;pdb.set_trace()

@@ -10,7 +10,7 @@ from gensim.models import Word2Vec
 
 from ..utils.io_utils import dump_json
 
-def get_doc_codes(model, bow, vocab, size):
+def get_doc_codes(model, bow, vocab, size, avg=True):
     vec = np.zeros(size)
     count = 0
     for idx, val in bow.iteritems():
@@ -25,7 +25,7 @@ def get_doc_codes(model, bow, vocab, size):
             vec += model[word.upper()] * val
             count += val
 
-    return vec / count
+    return vec / count if avg else vec
 
 def load_w2v(file):
     model = Word2Vec.load_word2vec_format(file, binary=True)

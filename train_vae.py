@@ -28,12 +28,12 @@ def train(args):
 
     np.random.seed(0)
     np.random.shuffle(X_docs)
-    n_val = 1000
+    n_val = args.n_val
     X_train = np.r_[X_docs[:-n_val]]
     X_val = np.r_[X_docs[-n_val:]]
 
     vae = VarAutoEncoder(n_vocab, args.n_intermediate_dim, args.n_dim, args.batch_size, weights_file=args.load_weights)
-    vae.fit([X_train[:10300], X_train[:10300]], [X_val, X_val], nb_epoch=args.n_epoch)
+    vae.fit([X_train[:3000], X_train[:3000]], [X_val, X_val], nb_epoch=args.n_epoch)
 
     if args.save_model:
         arch_file  = args.save_model + '.arch'
@@ -49,6 +49,7 @@ def main():
     parser.add_argument('-nd', '--n_dim', type=int, default=128, help='num of dimensions (default 128)')
     parser.add_argument('-ne', '--n_epoch', type=int, default=100, help='num of epoches (default 100)')
     parser.add_argument('-bs', '--batch_size', type=int, default=100, help='batch size (default 100)')
+    parser.add_argument('-nv', '--n_val', type=int, default=1000, help='size of validation set (default 1000)')
     parser.add_argument('-lw', '--load_weights', type=str, help='path to the pretrained weights file')
     parser.add_argument('-sm', '--save_model', type=str, default='model', help='path to the output model')
     args = parser.parse_args()

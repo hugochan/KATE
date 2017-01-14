@@ -20,6 +20,7 @@ def main():
     parser.add_argument('train_label', type=str, help='path to the train label file')
     parser.add_argument('test_label', type=str, help='path to the test label file')
     parser.add_argument('out_dir', type=str, help='path to the output dir')
+    parser.add_argument('-nv', '--n_val', type=int, default=1000, help='validation set size')
     args = parser.parse_args()
 
     docs = load_corpus(args.train_path)['docs'].items()
@@ -27,7 +28,7 @@ def main():
 
     np.random.seed(0)
     np.random.shuffle(docs)
-    n_val = 1000
+    n_val = args.n_val
     train_docs = dict(docs[:-n_val])
     val_docs = dict(docs[-n_val:])
 

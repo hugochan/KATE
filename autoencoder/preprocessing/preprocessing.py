@@ -28,6 +28,23 @@ def load_stopwords(file):
 
     return stop_words
 
+def init_stopwords():
+    try:
+        stopword_path = 'patterns/english_stopwords.txt'
+        cached_stop_words = load_stopwords(os.path.join(os.path.split(__file__)[0], stopword_path))
+        print 'Loaded %s' % stopword_path
+    except:
+        from nltk.corpus import stopwords
+        cached_stop_words = stopwords.words("english")
+        print 'Loaded nltk.corpus.stopwords'
+
+    return cached_stop_words
+
+def tiny_tokenize(text, stem=False, stop_words=[]):
+    return [EnglishStemmer().stem(token) if stem else token for token in wordpunct_tokenize(
+                        re.sub('[%s]' % re.escape(string.punctuation), ' ', text.decode(encoding='UTF-8', errors='ignore'))) if
+                        not token.isdigit() and not token in stop_words]
+
 def get_all_files(corpus_path, recursive=False):
     if recursive:
         return [os.path.join(root, file) for root, dirnames, filenames in os.walk(corpus_path) for file in filenames if not file.startswith('.')]
@@ -40,15 +57,7 @@ def load_data(corpus_path, recursive=False, stem=True):
     files = get_all_files(corpus_path, recursive)
 
     # word_tokenizer = RegexpTokenizer(r'[a-zA-Z]+') # match only alphabet characters
-    stemmer = EnglishStemmer()  # This method only works for english text
-    try:
-        stopword_path = 'patterns/english_stopwords.txt'
-        cached_stop_words = load_stopwords(os.path.join(os.path.split(__file__)[0], stopword_path))
-        print 'Loaded %s' % stopword_path
-    except:
-        from nltk.corpus import stopwords
-        cached_stop_words = stopwords.words("english")
-        print 'Loaded nltk.corpus.stopwords'
+    cached_stop_words = init_stopwords()
 
     for filename in files:
         try:
@@ -56,9 +65,7 @@ def load_data(corpus_path, recursive=False, stem=True):
                 text = fp.read().lower()
                 # words = [word for word in word_tokenizer.tokenize(text) if word not in cached_stop_words]
                 # remove punctuations, stopwords and *unnecessary digits*, stemming
-                words = [stemmer.stem(token) if stem else token for token in wordpunct_tokenize(
-                        re.sub('[%s]' % re.escape(string.punctuation), ' ', text.decode(encoding='UTF-8', errors='ignore'))) if
-                        not token.isdigit() and not token in cached_stop_words]
+                words = tiny_tokenize(text, stem, cached_stop_words)
 
                 # doc_name = os.path.basename(filename)
                 parent_name, child_name = os.path.split(filename)
@@ -144,7 +151,7 @@ def corpus2libsvm(docs, doc_labels, output):
     names = []
     for key, val in docs.iteritems():
         label = doc_labels[key]
-        line = label if isinstance(label, list) else [label] + ["%s:%s" % (int(x) + 1, y) for x, y in val.iteritems()]
+        line = label if isinstance(label, list) else [str(label)] + ["%s:%s" % (int(x) + 1, y) for x, y in val.iteritems()]
         data.append(line)
         names.append(key)
     write_file(data, output)
