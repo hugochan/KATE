@@ -18,14 +18,15 @@ from autoencoder.utils.io_utils import dump_json
 
 def train(args):
     corpus = load_corpus(args.input)
-    vocab, docs, word_freq = corpus['vocab'], corpus['docs'], corpus['word_freq']
-    n_vocab = len(vocab)
-    n_docs = len(docs)
-    X_docs = [vecnorm(doc2vec(x, n_vocab), 'logmax1', 0) for x in docs.values()]
+    n_vocab, docs = len(corpus['vocab']), corpus['docs']
+    corpus.clear() # save memory
 
-    # Prepare feature_weights for weighted loss
-    feature_weights = None
-    # feature_weights = vecnorm(vocab_weights(vocab, word_freq, max_=100., ratio=.75), 'prob', 0)
+    X_docs = []
+    for k in docs.keys():
+        X_docs.append(vecnorm(doc2vec(docs[k], n_vocab), 'logmax1', 0))
+        del docs[k]
+
+    import pdb;pdb.set_trace()
 
     np.random.seed(0)
     np.random.shuffle(X_docs)
@@ -45,7 +46,7 @@ def train(args):
 
     ae = model(n_vocab, args.n_dim, comp_topk=args.comp_topk, weights_file=args.load_weights)
     ae.fit([X_train_noisy, X_train], [X_val_noisy, X_val], nb_epoch=args.n_epoch, \
-            batch_size=args.batch_size, feature_weights=feature_weights)
+            batch_size=args.batch_size, feature_weights=None)
 
     if args.save_model:
         arch_file  = args.save_model + '.arch'
