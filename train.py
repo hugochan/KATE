@@ -5,6 +5,7 @@ Created on Nov, 2016
 
 '''
 from __future__ import absolute_import
+import timeit
 import argparse
 from os import path
 import numpy as np
@@ -44,9 +45,13 @@ def train(args):
     # model = DeepAutoEncoder
     model = AutoEncoder
 
+    start = timeit.default_timer()
+
     ae = model(n_vocab, args.n_dim, comp_topk=args.comp_topk, weights_file=args.load_weights)
     ae.fit([X_train_noisy, X_train], [X_val_noisy, X_val], nb_epoch=args.n_epoch, \
             batch_size=args.batch_size, feature_weights=None)
+
+    print 'runtime: %ss' % timeit.default_timer() - start
 
     if args.save_model:
         arch_file  = args.save_model + '.arch'
