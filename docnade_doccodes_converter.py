@@ -26,11 +26,11 @@ def main():
 
     train_doc_codes_path = args.train_doc_codes
     test_doc_codes_path = args.test_doc_codes
-    train_doc_codes = load_file(train_doc_codes_path)
+    train_doc_codes = load_file(train_doc_codes_path, True)
     train_doc_names = load_file(args.train_doc_names)
-    val_doc_codes = load_file(args.val_doc_codes)
+    val_doc_codes = load_file(args.val_doc_codes, True)
     val_doc_names = load_file(args.val_doc_names)
-    test_doc_codes = load_file(test_doc_codes_path)
+    test_doc_codes = load_file(test_doc_codes_path, True)
     test_doc_names = load_file(args.test_doc_names)
 
     assert len(train_doc_codes) == len(train_doc_names)

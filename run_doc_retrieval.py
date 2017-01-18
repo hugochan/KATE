@@ -9,8 +9,9 @@ import argparse
 import numpy as np
 from keras.utils import np_utils
 
-from autoencoder.testing.retrieval import retrieval
+from autoencoder.testing.retrieval import retrieval, retrieval_by_doclength
 from autoencoder.utils.io_utils import load_json, load_marshal
+from autoencoder.preprocessing.preprocessing import load_corpus
 
 def main():
     parser = argparse.ArgumentParser()
@@ -19,7 +20,9 @@ def main():
     parser.add_argument('test_doc_codes', type=str, help='path to the test doc codes file')
     parser.add_argument('test_doc_labels', type=str, help='path to the test doc labels file')
     parser.add_argument('-nv', '--n_val', type=int, default=1000, help='size of validation set (default 1000)')
+    parser.add_argument('-qi', '--query_info', type=str, help='path to the query corpus (for geting doc length info)')
     args = parser.parse_args()
+
 
     # autoencoder
     train_doc_codes = load_json(args.train_doc_codes)
@@ -55,6 +58,9 @@ def main():
     # X_test = np.array(load_marshal(args.test_doc_codes))
     # Y_test = np.array(load_marshal(args.test_doc_labels))
 
+    query_docs = load_corpus(args.query_info)['docs']
+    len_test = [sum(query_docs[i].values()) for i in test_doc_codes.keys()]
+
     seed = 7
     np.random.seed(seed)
     val_idx = np.random.choice(range(X_train.shape[0]), args.n_val, replace=False)
@@ -68,8 +74,12 @@ def main():
     results = retrieval(X_new_train, Y_new_train, X_new_val, Y_new_val,\
                         fractions=[0.001])
     print 'precision on val set: %s' % results
-    results = retrieval(X_train, Y_train, X_test, Y_test,\
+
+    if not args.query_info:
+        results = retrieval(X_train, Y_train, X_test, Y_test,\
                         fractions=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0])
+    else:
+        results = retrieval_by_doclength(X_train, Y_train, X_test, Y_test, len_test, fraction=0.001)
     print 'precision on test set: %s' % results
     import pdb;pdb.set_trace()
 

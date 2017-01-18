@@ -20,16 +20,40 @@ def retrieval(X_train, Y_train, X_test, Y_test, fractions=[0.01, 0.5, 1.0]):
     X_test = unitmatrix(X_test)
     score = X_test.dot(X_train.T)
     precisions = defaultdict(float)
+    n_queries = len(X_test)
 
-    for idx in range(len(X_test)):
+    for idx in range(n_queries):
         retrieval_idx = score[idx].argsort()[::-1]
         for fr in fractions:
             ntop = int(fr * len(X_train))
             pr = float(len([i for i in retrieval_idx[:ntop] if Y_train[i] == Y_test[idx]])) / ntop
             precisions[fr] += pr
-    precisions = dict([(x, y / len(X_test)) for x, y in precisions.iteritems()])
+    precisions = dict([(x, y / n_queries) for x, y in precisions.iteritems()])
 
     return sorted(precisions.items(), key=lambda d:d[0])
+
+def retrieval_by_doclength(X_train, Y_train, X_test, Y_test, len_test, fraction=0.001, len_bin=600):
+    X_train = unitmatrix(X_train) # normalize
+    X_test = unitmatrix(X_test)
+    score = X_test.dot(X_train.T)
+    precisions = defaultdict(list)
+    n_queries = len(X_test)
+    ntop = int(fraction * len(X_train))
+    # bins = [50, 100, 200, 300, 500, 1000, 2000, 3000, 4000, 5000]
+    bins = [100, 120, 150, 200, 300, 1000, 1500, 2000, 4000]
+
+    for idx in range(n_queries):
+        retrieval_idx = score[idx].argsort()[::-1]
+        pr = float(len([i for i in retrieval_idx[:ntop] if Y_train[i] == Y_test[idx]])) / ntop
+        for each in bins:
+            if len_test[idx] < each:
+                precisions[each].append(pr)
+                break
+    import pdb;pdb.set_trace()
+    precisions = dict([(x, sum(y) / len(y)) for x, y in precisions.iteritems()])
+
+    return sorted(precisions.items(), key=lambda d:d[0])
+
 
 def retrieval_perlabel(X_train, Y_train, X_test, Y_test, fractions=[0.01, 0.5, 1.0]):
     X_train = unitmatrix(X_train) # normalize

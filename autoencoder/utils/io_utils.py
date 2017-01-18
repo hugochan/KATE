@@ -67,12 +67,15 @@ def write_file(data, file):
     except Exception as e:
         raise e
 
-def load_file(file):
+def load_file(file, float_=False):
     data = []
     try:
         with open(file, 'r') as datafile:
             for line in datafile:
-                data.append(line.strip('\n').split())
+                content = line.strip('\n').split()
+                if float_:
+                    content = [float(x) for x in content]
+                data.append(content)
     except Exception as e:
         raise e
 
