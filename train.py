@@ -27,15 +27,18 @@ def train(args):
         X_docs.append(vecnorm(doc2vec(docs[k], n_vocab), 'logmax1', 0))
         del docs[k]
 
-    import pdb;pdb.set_trace()
-
     np.random.seed(0)
     np.random.shuffle(X_docs)
     # X_docs_noisy = corrupted_matrix(np.r_[X_docs], 0.1)
 
     n_val = args.n_val
+    # X_train = np.r_[X_docs[:-n_val]]
+    # X_val = np.r_[X_docs[-n_val:]]
+
     X_train = np.r_[X_docs[:-n_val]]
-    X_val = np.r_[X_docs[-n_val:]]
+    del X_docs[:-n_val]
+    X_val = np.r_[X_docs]
+    del X_docs
 
     X_train_noisy = X_train
     X_val_noisy = X_val
@@ -44,6 +47,8 @@ def train(args):
 
     # model = DeepAutoEncoder
     model = AutoEncoder
+    # import pdb;pdb.set_trace()
+    print 'go ahead...'
 
     start = timeit.default_timer()
 
@@ -51,7 +56,7 @@ def train(args):
     ae.fit([X_train_noisy, X_train], [X_val_noisy, X_val], nb_epoch=args.n_epoch, \
             batch_size=args.batch_size, feature_weights=None)
 
-    print 'runtime: %ss' % timeit.default_timer() - start
+    print 'runtime: %ss' % (timeit.default_timer() - start)
 
     if args.save_model:
         arch_file  = args.save_model + '.arch'
