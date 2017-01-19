@@ -53,7 +53,12 @@ def print_topics(topics):
 def test(args):
     corpus = load_corpus(args.input)
     vocab, docs = corpus['vocab'], corpus['docs']
-    X_docs = np.r_[[vecnorm(doc2vec(x, len(vocab)), 'logmax1', 0) for x in docs.values()]]
+
+    X_docs = []
+    for k in docs.keys():
+        X_docs.append(vecnorm(doc2vec(docs[k], n_vocab), 'logmax1', 0))
+        del docs[k]
+    X_docs = np.r_[X_docs]
 
     model = AutoEncoder
     # model = DeepAutoEncoder
