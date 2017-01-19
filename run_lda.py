@@ -17,11 +17,12 @@ def train(args):
     corpus = load_corpus(args.corpus)
     docs, vocab_dict = corpus['docs'], corpus['vocab']
     doc_bow = []
-    for each in docs.values():
+    for k in docs.keys():
         bows = []
-        for idx, count in each.iteritems():
+        for idx, count in docs[k].iteritems():
             bows.append((int(idx), count))
         doc_bow.append(bows)
+        del docs[k]
     vocab_dict = dict([(int(y), x) for x, y in vocab_dict.iteritems()])
     train_lda(doc_bow, vocab_dict, args.n_topics, args.save_model)
 
@@ -29,11 +30,12 @@ def test(args):
     n_topics = args.n_topics
     docs = load_corpus(args.corpus)['docs']
     doc_bow = {}
-    for key, each in docs.iteritems():
+    for k in docs.keys():
         bows = []
-        for idx, count in each.iteritems():
+        for idx, count in docs[k].iteritems():
             bows.append((int(idx), count))
-        doc_bow[key]= bows
+        doc_bow[k]= bows
+        del docs[k]
 
     lda = load_model(args.load_model)
     generate_doc_codes(lda, doc_bow, n_topics, args.output)
