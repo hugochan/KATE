@@ -5,6 +5,7 @@ Created on Jan, 2017
 
 '''
 from __future__ import absolute_import
+import timeit
 import argparse
 from os import path
 import numpy as np
@@ -17,23 +18,33 @@ from autoencoder.utils.io_utils import dump_json
 
 def train(args):
     corpus = load_corpus(args.input)
-    vocab, docs, word_freq = corpus['vocab'], corpus['docs'], corpus['word_freq']
-    n_vocab = len(vocab)
-    n_docs = len(docs)
+    n_vocab, docs = len(corpus['vocab']), corpus['docs']
+    corpus.clear() # save memory
 
-    X_docs = [vecnorm(doc2vec(x, n_vocab), 'logmax1', 0) for x in docs.values()]
-
-    # Prepare feature_weights for weighted loss
-    feature_weights = None
+    X_docs = []
+    for k in docs.keys():
+        X_docs.append(vecnorm(doc2vec(docs[k], n_vocab), 'logmax1', 0))
+        del docs[k]
 
     np.random.seed(0)
     np.random.shuffle(X_docs)
-    n_val = args.n_val
-    X_train = np.r_[X_docs[:-n_val]]
-    X_val = np.r_[X_docs[-n_val:]]
+    # X_docs_noisy = corrupted_matrix(np.r_[X_docs], 0.1)
 
+    n_val = args.n_val
+    # X_train = np.r_[X_docs[:-n_val]]
+    # X_val = np.r_[X_docs[-n_val:]]
+    X_train = np.r_[X_docs[:-n_val]]
+    del X_docs[:-n_val]
+    X_val = np.r_[X_docs]
+    del X_docs
+
+    start = timeit.default_timer()
+
+    size = X_train.shape[0] - X_train.shape[0] % args.batch_size
     vae = VarAutoEncoder(n_vocab, args.n_intermediate_dim, args.n_dim, args.batch_size, weights_file=args.load_weights)
-    vae.fit([X_train[:3000], X_train[:3000]], [X_val, X_val], nb_epoch=args.n_epoch)
+    vae.fit([X_train[:size], X_train[:size]], [X_val, X_val], nb_epoch=args.n_epoch)
+
+    print 'runtime: %ss' % (timeit.default_timer() - start)
 
     if args.save_model:
         arch_file  = args.save_model + '.arch'
