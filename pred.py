@@ -53,6 +53,7 @@ def print_topics(topics):
 def test(args):
     corpus = load_corpus(args.input)
     vocab, docs = corpus['vocab'], corpus['docs']
+    n_vocab = len(vocab)
 
     X_docs = []
     for k in docs.keys():
