@@ -55,8 +55,9 @@ def test(args):
     vocab, docs = corpus['vocab'], corpus['docs']
     n_vocab = len(vocab)
 
+    doc_keys = docs.keys()
     X_docs = []
-    for k in docs.keys():
+    for k in doc_keys:
         X_docs.append(vecnorm(doc2vec(docs[k], n_vocab), 'logmax1', 0))
         del docs[k]
     X_docs = np.r_[X_docs]
@@ -66,7 +67,7 @@ def test(args):
     ae = load_model(model, args.load_arch, args.load_weights)
 
     doc_codes = ae.encoder.predict(X_docs)
-    dump_json(dict(zip(docs.keys(), doc_codes.tolist())), args.output)
+    dump_json(dict(zip(doc_keys, doc_codes.tolist())), args.output)
     print 'Saved doc codes file to %s' % args.output
 
     if args.save_topics:

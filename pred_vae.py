@@ -33,12 +33,19 @@ def print_topics(topics):
 def test(args):
     corpus = load_corpus(args.input)
     vocab, docs = corpus['vocab'], corpus['docs']
-    X_docs = np.r_[[vecnorm(doc2vec(x, len(vocab)), 'logmax1', 0) for x in docs.values()]]
+    n_vocab = len(vocab)
+
+    doc_keys = docs.keys()
+    X_docs = []
+    for k in doc_keys:
+        X_docs.append(vecnorm(doc2vec(docs[k], n_vocab), 'logmax1', 0))
+        del docs[k]
+    X_docs = np.r_[X_docs]
 
     vae = load_vae_model(VarAutoEncoder, args.load_arch, args.load_weights)
 
     doc_codes = vae.encoder.predict(X_docs)
-    dump_json(dict(zip(docs.keys(), doc_codes.tolist())), args.output)
+    dump_json(dict(zip(doc_keys, doc_codes.tolist())), args.output)
     print 'Saved doc codes file to %s' % args.output
 
     if args.save_topics:
