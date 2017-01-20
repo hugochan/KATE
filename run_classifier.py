@@ -11,7 +11,7 @@ from keras.utils import np_utils
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import ShuffleSplit
 
-from autoencoder.testing.classifier import neural_classifier
+from autoencoder.testing.classifier import multiclass_classifier, multilabel_classifier
 from autoencoder.utils.io_utils import load_json, load_marshal
 
 def main():
@@ -24,6 +24,8 @@ def main():
     parser.add_argument('-ne', '--n_epoch', type=int, default=100, help='num of epoches (default 100)')
     parser.add_argument('-bs', '--batch_size', type=int, default=100, help='batch size (default 100)')
     parser.add_argument('-cv', '--cross_validation', type=int, help='k-fold cross validation')
+    parser.add_argument('-mlc', '--multilabel_clf', action='store_true', help='multilabel classification flag')
+
     args = parser.parse_args()
 
     # autoencoder
@@ -59,9 +61,14 @@ def main():
         X_new_val = X_train[val_idx]
         Y_new_val = Y_train[val_idx]
         print 'train: %s, val: %s, test: %s' % (X_new_train.shape[0], X_new_val.shape[0], X_test.shape[0])
-        results = neural_classifier(X_new_train, Y_new_train, X_new_val, Y_new_val, \
-                X_test, Y_test, nb_epoch=args.n_epoch, batch_size=args.batch_size, seed=seed)
-        print 'acc on test set: %s' % results
+        if args.multilabel_clf:
+            results = multilabel_classifier(X_new_train, Y_new_train, X_new_val, Y_new_val, \
+                    X_test, Y_test, nb_epoch=args.n_epoch, batch_size=args.batch_size, seed=seed)
+            print 'f1 score on test set: macro_f1: %s, micro_f1: %s' % results
+        else:
+            results = multiclass_classifier(X_new_train, Y_new_train, X_new_val, Y_new_val, \
+                    X_test, Y_test, nb_epoch=args.n_epoch, batch_size=args.batch_size, seed=seed)
+            print 'acc on test set: %s' % results
     else:
         X = np.concatenate((X_train, X_test), axis=0)
         Y = np.concatenate((Y_train, Y_test), axis=0)
@@ -74,12 +81,25 @@ def main():
             Y_new_train = Y[new_train_idx]
             X_new_val = X[val_idx]
             Y_new_val = Y[val_idx]
-            results.append(neural_classifier(X_new_train, Y_new_train, X_new_val, Y_new_val, \
-                X[test_idx], Y[test_idx], nb_epoch=args.n_epoch, batch_size=args.batch_size, seed=seed))
+            if args.multilabel_clf:
+                results.append(multilabel_classifier(X_new_train, Y_new_train, X_new_val, Y_new_val, \
+                        X_test, Y_test, nb_epoch=args.n_epoch, batch_size=args.batch_size, seed=seed))
+            else:
+                results.append(multiclass_classifier(X_new_train, Y_new_train, X_new_val, Y_new_val, \
+                    X[test_idx], Y[test_idx], nb_epoch=args.n_epoch, batch_size=args.batch_size, seed=seed))
 
-        mean = np.mean(results)
-        std = np.std(results)
-        print 'acc on %s cross validation: %s (%s)' % (int(args.cross_validation), mean, std)
+        if args.multilabel_clf:
+            macro_f1, micro_f1 = zip(*results)
+            macro_mean = np.mean(macro_f1)
+            macro_std = np.std(macro_f1)
+            micro_mean = np.mean(micro_f1)
+            micro_std = np.std(micro_f1)
+            print 'f1 score on %s-fold cross validation: macro_f1: %s (%s), micro_f1: %s (%s)' \
+                    % (int(args.cross_validation), macro_mean, macro_std, micro_mean, micro_std)
+        else:
+            mean = np.mean(results)
+            std = np.std(results)
+            print 'acc on %s-fold cross validation: %s (%s)' % (int(args.cross_validation), mean, std)
     import pdb;pdb.set_trace()
 
 if __name__ == '__main__':
