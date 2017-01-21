@@ -15,24 +15,25 @@ from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from autoencoder.utils.op_utils import unitmatrix
 
 
-def retrieval(X_train, Y_train, X_test, Y_test, fractions=[0.01, 0.5, 1.0]):
+def retrieval(X_train, Y_train, X_test, Y_test, fractions=[0.01, 0.5, 1.0], multilabel=False):
     X_train = unitmatrix(X_train) # normalize
     X_test = unitmatrix(X_test)
     score = X_test.dot(X_train.T)
     precisions = defaultdict(float)
     n_queries = len(X_test)
+    db_size = len(X_train)
 
     for idx in range(n_queries):
         retrieval_idx = score[idx].argsort()[::-1]
         for fr in fractions:
-            ntop = int(fr * len(X_train))
-            pr = float(len([i for i in retrieval_idx[:ntop] if Y_train[i] == Y_test[idx]])) / ntop
+            ntop = int(fr * db_size)
+            pr = float(len([i for i in retrieval_idx[:ntop] if hit(Y_train[i], Y_test[idx], multilabel)])) / ntop
             precisions[fr] += pr
     precisions = dict([(x, y / n_queries) for x, y in precisions.iteritems()])
 
     return sorted(precisions.items(), key=lambda d:d[0])
 
-def retrieval_by_doclength(X_train, Y_train, X_test, Y_test, len_test, fraction=0.001, len_bin=600):
+def retrieval_by_doclength(X_train, Y_train, X_test, Y_test, len_test, fraction=0.001, len_bin=600, multilabel=False):
     X_train = unitmatrix(X_train) # normalize
     X_test = unitmatrix(X_test)
     score = X_test.dot(X_train.T)
@@ -44,7 +45,7 @@ def retrieval_by_doclength(X_train, Y_train, X_test, Y_test, len_test, fraction=
 
     for idx in range(n_queries):
         retrieval_idx = score[idx].argsort()[::-1]
-        pr = float(len([i for i in retrieval_idx[:ntop] if Y_train[i] == Y_test[idx]])) / ntop
+        pr = float(len([i for i in retrieval_idx[:ntop] if hit(Y_train[i], Y_test[idx], multilabel)])) / ntop
         for each in bins:
             if len_test[idx] < each:
                 precisions[each].append(pr)
@@ -79,3 +80,11 @@ def retrieval_perlabel(X_train, Y_train, X_test, Y_test, fractions=[0.01, 0.5, 1
         new_pr[fr] = avg_pr / len(label_counter)
 
     return sorted(new_pr.items(), key=lambda d:d[0])
+
+def hit(x, y, multilabel=False):
+    if multilabel:
+        return len(set(x).intersection(set(y))) > 0
+    else:
+        return x == y
+
+

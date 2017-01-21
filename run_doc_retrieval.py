@@ -21,6 +21,7 @@ def main():
     parser.add_argument('test_doc_labels', type=str, help='path to the test doc labels file')
     parser.add_argument('-nv', '--n_val', type=int, default=1000, help='size of validation set (default 1000)')
     parser.add_argument('-qi', '--query_info', type=str, help='path to the query corpus (for geting doc length info)')
+    parser.add_argument('-ml', '--multilabel', action='store_true', help='multilabel flag')
     args = parser.parse_args()
 
 
@@ -58,8 +59,6 @@ def main():
     # X_test = np.array(load_marshal(args.test_doc_codes))
     # Y_test = np.array(load_marshal(args.test_doc_labels))
 
-    query_docs = load_corpus(args.query_info)['docs']
-    len_test = [sum(query_docs[i].values()) for i in test_doc_codes.keys()]
 
     seed = 7
     np.random.seed(seed)
@@ -72,14 +71,16 @@ def main():
     print 'train: %s, val: %s, test: %s' % (X_new_train.shape[0], X_new_val.shape[0], X_test.shape[0])
 
     results = retrieval(X_new_train, Y_new_train, X_new_val, Y_new_val,\
-                        fractions=[0.001])
+                        fractions=[0.001], multilabel=args.multilabel)
     print 'precision on val set: %s' % results
 
     if not args.query_info:
         results = retrieval(X_train, Y_train, X_test, Y_test,\
-                        fractions=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0])
+                        fractions=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0], multilabel=args.multilabel)
     else:
-        results = retrieval_by_doclength(X_train, Y_train, X_test, Y_test, len_test, fraction=0.001)
+        query_docs = load_corpus(args.query_info)['docs']
+        len_test = [sum(query_docs[i].values()) for i in test_doc_codes.keys()]
+        results = retrieval_by_doclength(X_train, Y_train, X_test, Y_test, len_test, fraction=0.001, multilabel=args.multilabel)
     print 'precision on test set: %s' % results
     import pdb;pdb.set_trace()
 
