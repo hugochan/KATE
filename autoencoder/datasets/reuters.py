@@ -80,6 +80,7 @@ def construct_train_test_corpus(path_list, test_split, output, threshold=10, top
     print 'Generated test corpus'
 
 def extract_labels(docs, path, output):
+    # it will be fast if docs is a dict instead of a list
     doc_labels = defaultdict(set)
     with open(path, 'r') as f:
         for line in f:
@@ -87,7 +88,6 @@ def extract_labels(docs, path, output):
             if did in docs:
                 doc_labels[did].add(label)
     doc_labels = dict([(x, list(y)) for x, y in doc_labels.iteritems()])
-
     dump_json(doc_labels, output)
 
     return doc_labels

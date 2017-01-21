@@ -17,8 +17,7 @@ def main():
     parser.add_argument('-o', '--output', type=str, required=True, help='path to the output file')
     args = parser.parse_args()
 
-    docs_names = load_json(args.corpus)['docs'].keys()
-    extract_labels(docs_names, args.label, args.output)
+    extract_labels(load_json(args.corpus)['docs'], args.label, args.output)
 
 
 if __name__ == '__main__':
