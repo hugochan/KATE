@@ -9,6 +9,7 @@ import argparse
 import numpy as np
 from keras.utils import np_utils
 from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.model_selection import ShuffleSplit
 
 from autoencoder.testing.classifier import multiclass_classifier, multilabel_classifier
@@ -45,11 +46,16 @@ def main():
     # Y_test = load_marshal(args.test_doc_labels)
 
 
-
-    encoder = LabelEncoder()
-    encoder.fit(Y_train)
-    Y_train = np_utils.to_categorical(encoder.transform(Y_train))
-    Y_test = np_utils.to_categorical(encoder.transform(Y_test))
+    if args.multilabel_clf:
+        encoder = MultiLabelBinarizer()
+        encoder.fit(Y_train + Y_test)
+        Y_train = encoder.transform(Y_train)
+        Y_test = encoder.transform(Y_test)
+    else:
+        encoder = LabelEncoder()
+        encoder.fit(Y_train + Y_test)
+        Y_train = np_utils.to_categorical(encoder.transform(Y_train))
+        Y_test = np_utils.to_categorical(encoder.transform(Y_test))
 
     seed = 7
     np.random.seed(seed)
@@ -64,7 +70,7 @@ def main():
         if args.multilabel_clf:
             results = multilabel_classifier(X_new_train, Y_new_train, X_new_val, Y_new_val, \
                     X_test, Y_test, nb_epoch=args.n_epoch, batch_size=args.batch_size, seed=seed)
-            print 'f1 score on test set: macro_f1: %s, micro_f1: %s' % results
+            print 'f1 score on test set: macro_f1: %s, micro_f1: %s' % tuple(results)
         else:
             results = multiclass_classifier(X_new_train, Y_new_train, X_new_val, Y_new_val, \
                     X_test, Y_test, nb_epoch=args.n_epoch, batch_size=args.batch_size, seed=seed)

@@ -16,7 +16,6 @@ import keras.backend as K
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from keras.layers.core import Activation
 # from keras.layers.normalization import BatchNormalization
-import tensorflow as tf
 
 from ..utils.keras_utils import Dense_tied, weighted_binary_crossentropy, KCompetitive
 from ..utils.io_utils import dump_json, load_json

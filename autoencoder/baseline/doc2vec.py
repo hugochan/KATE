@@ -6,7 +6,8 @@ Created on Jan, 2017
 '''
 from __future__ import absolute_import
 import numpy as np
-from gensim.models import Word2Vec
+from gensim.models.doc2vec import LabeledSentence
+from gensim.models import Doc2Vec
 
 from ..utils.io_utils import dump_json
 
@@ -31,11 +32,11 @@ def load_w2v(file):
     model = Word2Vec.load_word2vec_format(file, binary=True)
     return model
 
-def doc2vec(corpus, vocab, mod_file, output, size=300):
+def doc_word2vec(corpus, vocab, mod_file, output, size=300, avg=True):
     model = load_w2v(mod_file)
     doc_codes = {}
     for key, doc_bow in corpus.iteritems():
-        vec = get_doc_codes(model, doc_bow, vocab, size)
+        vec = get_doc_codes(model, doc_bow, vocab, size, avg)
         doc_codes[key] = vec.tolist()
     dump_json(doc_codes, output)
 

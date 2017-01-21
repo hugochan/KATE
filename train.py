@@ -34,7 +34,6 @@ def train(args):
     n_val = args.n_val
     # X_train = np.r_[X_docs[:-n_val]]
     # X_val = np.r_[X_docs[-n_val:]]
-    # import pdb;pdb.set_trace()
     X_train = np.r_[X_docs[:-n_val]]
     del X_docs[:-n_val]
     X_val = np.r_[X_docs]

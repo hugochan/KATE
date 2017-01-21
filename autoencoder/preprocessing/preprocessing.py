@@ -150,8 +150,7 @@ def corpus2libsvm(docs, doc_labels, output):
     data = []
     names = []
     for key, val in docs.iteritems():
-        # label = doc_labels[key]
-        label = 0
+        label = doc_labels[key]
         line = label if isinstance(label, list) else [str(label)] + ["%s:%s" % (int(x) + 1, y) for x, y in val.iteritems()]
         data.append(line)
         names.append(key)

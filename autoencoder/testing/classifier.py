@@ -21,7 +21,7 @@ def softmax_network(input_size, n_class):
 def sigmoid_network(input_size, n_class):
     model = Sequential()
     model.add(Dense(n_class, input_dim=input_size, init='glorot_normal', activation='sigmoid'))
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='adam')
 
     return model
 
@@ -54,7 +54,7 @@ def multilabel_classifier(X_train, Y_train, X_val, Y_val, X_test, Y_test, nb_epo
                         ]
                         )
     pred = clf.predict(X_test)
-    pred = np.reshape(pred, pred.shape[0])
+    pred = (pred > .5) * 1
     macro_f1 = f1_score(Y_test, pred, average='macro')
     micro_f1 = f1_score(Y_test, pred, average='micro')
 

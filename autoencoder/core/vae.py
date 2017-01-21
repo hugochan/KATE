@@ -15,7 +15,7 @@ from keras import objectives
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.layers.advanced_activations import PReLU
 import keras.backend as K
-import tensorflow as tf
+# import tensorflow as tf
 
 from ..utils.keras_utils import Dense_tied
 from ..utils.io_utils import dump_json, load_json

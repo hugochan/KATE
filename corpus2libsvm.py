@@ -24,7 +24,7 @@ def main():
     args = parser.parse_args()
 
     docs = load_corpus(args.train_path)['docs'].items()
-    # test_docs = load_corpus(args.test_path)['docs']
+    test_docs = load_corpus(args.test_path)['docs']
 
     np.random.seed(0)
     np.random.shuffle(docs)
@@ -32,13 +32,13 @@ def main():
     train_docs = dict(docs[:-n_val])
     val_docs = dict(docs[-n_val:])
 
-    # doc_labels = load_json(args.train_label)
-    # test_labels = load_json(args.test_label)
-    doc_labels = None
-    test_labels = None
+    doc_labels = load_json(args.train_label)
+    test_labels = load_json(args.test_label)
+    # doc_labels = None
+    # test_labels = None
     train = corpus2libsvm(train_docs, doc_labels, os.path.join(args.out_dir, 'train.libsvm'))
     val = corpus2libsvm(val_docs, doc_labels, os.path.join(args.out_dir, 'val.libsvm'))
-    # test = corpus2libsvm(test_docs, test_labels, os.path.join(args.out_dir, 'test.libsvm'))
+    test = corpus2libsvm(test_docs, test_labels, os.path.join(args.out_dir, 'test.libsvm'))
 
     import pdb;pdb.set_trace()
 
