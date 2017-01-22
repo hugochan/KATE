@@ -10,7 +10,7 @@ import re
 from collections import Counter, defaultdict
 import numpy as np
 
-from ..preprocessing.preprocessing import build_vocab, generate_bow
+from ..preprocessing.preprocessing import build_vocab, generate_bow, count_words
 from ..utils.io_utils import dump_json
 
 
@@ -42,15 +42,6 @@ def load_data(path_list, test_split, seed=666):
     test_data = dict(corpus[-int(n_docs * test_split):])
 
     return train_data, test_data
-
-def count_words(docs):
-    # count the number of times a word appears in a corpus
-    word_freq = defaultdict(lambda: 0)
-    for each in docs:
-        for word, val in each.items():
-            word_freq[word] += val
-
-    return word_freq
 
 def construct_corpus(doc_word_freq, word_freq, training_phase, vocab_dict=None, threshold=5, topn=None):
     if not (training_phase or isinstance(vocab_dict, dict)):

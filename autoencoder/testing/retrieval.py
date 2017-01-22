@@ -16,12 +16,14 @@ from autoencoder.utils.op_utils import unitmatrix
 
 
 def retrieval(X_train, Y_train, X_test, Y_test, fractions=[0.01, 0.5, 1.0], multilabel=False):
+    db_size = len(X_train)
+    n_queries = len(X_test)
     X_train = unitmatrix(X_train) # normalize
     X_test = unitmatrix(X_test)
     score = X_test.dot(X_train.T)
+    X_train = None
+    X_test = None
     precisions = defaultdict(float)
-    n_queries = len(X_test)
-    db_size = len(X_train)
 
     for idx in range(n_queries):
         retrieval_idx = score[idx].argsort()[::-1]

@@ -45,11 +45,25 @@ def tiny_tokenize(text, stem=False, stop_words=[]):
                         re.sub('[%s]' % re.escape(string.punctuation), ' ', text.decode(encoding='UTF-8', errors='ignore'))) if
                         not token.isdigit() and not token in stop_words]
 
+def tiny_tokenize_xml(text, stem=False, stop_words=[]):
+    return [EnglishStemmer().stem(token) if stem else token for token in wordpunct_tokenize(
+                        re.sub('[%s]' % re.escape(string.punctuation), ' ', text.encode(encoding='ascii', errors='ignore'))) if
+                        not token.isdigit() and not token in stop_words]
+
 def get_all_files(corpus_path, recursive=False):
     if recursive:
         return [os.path.join(root, file) for root, dirnames, filenames in os.walk(corpus_path) for file in filenames if not file.startswith('.')]
     else:
         return [os.path.join(corpus_path, filename) for filename in os.listdir(corpus_path) if os.path.isfile(os.path.join(corpus_path, filename)) and not filename.startswith('.')]
+
+def count_words(docs):
+    # count the number of times a word appears in a corpus
+    word_freq = defaultdict(lambda: 0)
+    for each in docs:
+        for word, val in each.items():
+            word_freq[word] += val
+
+    return word_freq
 
 def load_data(corpus_path, recursive=False, stem=True):
     word_freq = defaultdict(lambda: 0) # count the number of times a word appears in a corpus
@@ -150,7 +164,8 @@ def corpus2libsvm(docs, doc_labels, output):
     data = []
     names = []
     for key, val in docs.iteritems():
-        label = doc_labels[key]
+        # label = doc_labels[key]
+        label = 0
         line = label if isinstance(label, list) else [str(label)] + ["%s:%s" % (int(x) + 1, y) for x, y in val.iteritems()]
         data.append(line)
         names.append(key)

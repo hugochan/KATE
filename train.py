@@ -46,8 +46,6 @@ def train(args):
 
     # model = DeepAutoEncoder
     model = AutoEncoder
-    # import pdb;pdb.set_trace()
-    print 'go ahead...'
 
     start = timeit.default_timer()
 
