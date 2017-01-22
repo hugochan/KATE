@@ -36,22 +36,23 @@ def main():
     assert len(train_doc_codes) == len(train_doc_names)
     assert len(val_doc_codes) == len(val_doc_names)
     assert len(test_doc_codes) == len(test_doc_names)
-    # import pdb;pdb.set_trace()
 
     new_train_doc_codes = {}
     new_test_doc_codes = {}
 
     for i in range(len(train_doc_names)):
         new_train_doc_codes[''.join(train_doc_names[i])] = train_doc_codes[i]
+    del train_doc_codes
     for i in range(len(val_doc_names)):
         new_train_doc_codes[''.join(val_doc_names[i])] = val_doc_codes[i]
+    del val_doc_codes
     for i in range(len(test_doc_names)):
         new_test_doc_codes[''.join(test_doc_names[i])] = test_doc_codes[i]
+    del test_doc_codes
 
     out_dir = args.out_dir
     dump_json(new_train_doc_codes, os.path.join(out_dir, 'new_' + os.path.basename(train_doc_codes_path)))
     dump_json(new_test_doc_codes, os.path.join(out_dir, 'new_' + os.path.basename(test_doc_codes_path)))
-
 
     import pdb;pdb.set_trace()
 
