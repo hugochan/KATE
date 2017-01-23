@@ -31,9 +31,9 @@ def main():
     test_doc_codes = load_json(args.test_doc_codes)
     test_doc_labels = load_json(args.test_doc_labels)
     X_train = np.r_[train_doc_codes.values()]
-    Y_train = np.array([train_doc_labels[i] for i in train_doc_codes.keys()])
+    Y_train = np.array([train_doc_labels[i] for i in train_doc_codes])
     X_test = np.r_[test_doc_codes.values()]
-    Y_test = np.array([test_doc_labels[i] for i in test_doc_codes.keys()])
+    Y_test = np.array([test_doc_labels[i] for i in test_doc_codes])
 
     # # DBN
     # X_train = np.array(load_marshal(args.train_doc_codes))

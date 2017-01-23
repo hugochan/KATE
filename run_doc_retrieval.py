@@ -31,9 +31,9 @@ def main():
     test_doc_codes = load_json(args.test_doc_codes)
     test_doc_labels = load_json(args.test_doc_labels)
     X_train = np.r_[train_doc_codes.values()]
-    Y_train = np.array([train_doc_labels[i] for i in train_doc_codes.keys()])
+    Y_train = np.array([train_doc_labels[i] for i in train_doc_codes])
     X_test = np.r_[test_doc_codes.values()]
-    Y_test = np.array([test_doc_labels[i] for i in test_doc_codes.keys()])
+    Y_test = np.array([test_doc_labels[i] for i in test_doc_codes])
 
     # # DocNADE
     # train_doc_codes = load_json(args.train_doc_codes)
@@ -48,9 +48,9 @@ def main():
     #     X_test.append([float(x) for x in each])
 
     # X_train = np.r_[X_train]
-    # Y_train = np.array([train_doc_labels[i] for i in train_doc_codes.keys()])
+    # Y_train = np.array([train_doc_labels[i] for i in train_doc_codes])
     # X_test = np.r_[X_test]
-    # Y_test = np.array([test_doc_labels[i] for i in test_doc_codes.keys()])
+    # Y_test = np.array([test_doc_labels[i] for i in test_doc_codes])
 
 
     # # DBN
@@ -79,7 +79,7 @@ def main():
                         fractions=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0], multilabel=args.multilabel)
     else:
         query_docs = load_corpus(args.query_info)['docs']
-        len_test = [sum(query_docs[i].values()) for i in test_doc_codes.keys()]
+        len_test = [sum(query_docs[i].values()) for i in test_doc_codes]
         results = retrieval_by_doclength(X_train, Y_train, X_test, Y_test, len_test, fraction=0.001, multilabel=args.multilabel)
     print 'precision on test set: %s' % results
     import pdb;pdb.set_trace()
