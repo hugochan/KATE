@@ -6,4 +6,4 @@ output/
 corpus/
 imgs/
 others/
-third_party/
+*.txt

@@ -98,4 +98,12 @@ def construct_train_test_corpus(corpus_dir, test_split, output, threshold=10, to
     test_corpus = {'docs': test_docs, 'vocab': vocab_dict}
     dump_json(test_corpus, os.path.join(output, 'test.corpus'))
     print 'Generated test corpus'
+
+def extract_labels(docs, labels, output):
+    # it will be fast if docs is a dict instead of a list
+    doc_labels = {}
+    for name in docs:
+        doc_labels[name] = labels[name]
+    dump_json(doc_labels, output)
     import pdb;pdb.set_trace()
+    return doc_labels
