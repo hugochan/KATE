@@ -27,9 +27,10 @@ def retrieval(X_train, Y_train, X_test, Y_test, fractions=[0.01, 0.5, 1.0], mult
 
     for idx in range(n_queries):
         retrieval_idx = score[idx].argsort()[::-1]
+        target = Y_test[idx]
         for fr in fractions:
             ntop = int(fr * db_size)
-            pr = float(len([i for i in retrieval_idx[:ntop] if hit(Y_train[i], Y_test[idx], multilabel)])) / ntop
+            pr = float(len([i for i in retrieval_idx[:ntop] if hit(Y_train[i], target, multilabel)])) / ntop
             precisions[fr] += pr
     precisions = dict([(x, y / n_queries) for x, y in precisions.iteritems()])
 
