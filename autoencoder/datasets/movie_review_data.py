@@ -13,6 +13,27 @@ import numpy as np
 from ..preprocessing.preprocessing import build_vocab, generate_bow, tiny_tokenize, init_stopwords
 from ..utils.io_utils import dump_json
 
+cached_stop_words = init_stopwords()
+
+
+class CorpusIterMRD(object):
+    def __init__(self, corpus_path, stem=True, with_docname=False):
+        self.corpus_path = corpus_path
+        self.stem = stem
+        self.with_docname = with_docname
+
+    def __iter__(self):
+        try:
+            with open(self.corpus_path, 'r') as f:
+                for line in f:
+                    idx, _, subj = line.split('\t')
+                    words = tiny_tokenize(subj.lower(), stem=self.stem, stop_words=cached_stop_words)
+                    if self.with_docname:
+                        yield [words, [idx]]
+                    else:
+                        yield words
+        except Exception as e:
+            raise e
 
 def load_data(file, test_split, seed=666, stem=False):
     '''Loads the Movie Review Data (https://www.cs.cornell.edu/people/pabo/movie-review-data/).
@@ -23,7 +44,7 @@ def load_data(file, test_split, seed=666, stem=False):
         seed : random seed for sample shuffling.
     '''
     # count the number of times a word appears in a doc
-    cached_stop_words = init_stopwords()
+    # cached_stop_words = init_stopwords()
 
     corpus = {}
     labels = {}

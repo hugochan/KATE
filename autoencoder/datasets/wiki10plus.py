@@ -18,6 +18,27 @@ pattern = r'>([^<>]+)<'
 prog = re.compile(pattern)
 cached_stop_words = init_stopwords()
 
+
+class CorpusIterWiki10plus(object):
+    def __init__(self, corpus_dir, stem=True, with_docname=False):
+        self.stem = stem
+        self.with_docname = with_docname
+        self.files = get_all_files(corpus_dir, False)
+
+    def __iter__(self):
+        for filename in self.files:
+            try:
+                with open(filename, 'r') as fp:
+                    text = fp.read().lower()
+                    # remove punctuations, stopwords and *unnecessary digits*, stemming
+                    words = tiny_tokenize(text, self.stem, cached_stop_words)
+                    if self.with_docname:
+                        yield [words, [os.path.basename(filename)]]
+                    else:
+                        yield words
+            except Exception as e:
+                raise e
+
 def extract_contents(text, out_file):
     if not isinstance(text, unicode):
         text = text.decode('utf-8')
