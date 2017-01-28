@@ -15,22 +15,28 @@ from ..utils.io_utils import dump_json
 
 
 class CorpusIterReuters(object):
-    def __init__(self, path_list, with_docname=False):
+    def __init__(self, path_list, train_docs, with_docname=False):
         self.path_list = path_list
+        self.train_docs = train_docs
         self.with_docname = with_docname
 
     def __iter__(self):
+        count = 0
         for path in self.path_list:
             with open(path, 'r') as f:
                 texts = re.split('\n\s*\n', f.read())[:-1]
                 for block in texts:
                     tmp = block.split('\n')
                     did = tmp[0].split(' ')[-1]
+                    if not did in self.train_docs:
+                        continue
                     words = (' '.join(tmp[2:])).split()
+                    count += 1
                     if self.with_docname:
                         yield [words, [did]]
                     else:
                         yield words
+        print count
 
 def load_data(path_list, test_split, seed=666):
     '''Loads the Reuters RCV1-v2 newswire dataset.

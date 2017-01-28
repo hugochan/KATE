@@ -19,13 +19,14 @@ class CorpusIter20News(object):
         self.files = get_all_files(corpus_path, recursive)
 
     def __iter__(self):
+        count = 0
         for filename in self.files:
             try:
                 with open(filename, 'r') as fp:
                     text = fp.read().lower()
                     # remove punctuations, stopwords and *unnecessary digits*, stemming
                     words = tiny_tokenize(text, self.stem, cached_stop_words)
-
+                    count += 1
                     if self.with_docname:
                         parent_name, child_name = os.path.split(filename)
                         doc_name = os.path.split(parent_name)[-1] + '_' + child_name
@@ -34,3 +35,4 @@ class CorpusIter20News(object):
                         yield words
             except Exception as e:
                 raise e
+        print count

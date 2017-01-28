@@ -18,13 +18,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--corpus', required=True, type=str, help='path to the corpus file')
     parser.add_argument('-mf', '--mod_file', required=True, type=str, help='path to the word2vec mod file')
+    parser.add_argument('-nd', '--n_dim', required=True, type=int, help='num of dimensions')
     parser.add_argument('-o', '--output', type=str, help='path to the output doc codes file')
     args = parser.parse_args()
 
     corpus = load_corpus(args.corpus)
     docs, vocab_dict = corpus['docs'], corpus['vocab']
 
-    doc_codes = doc_word2vec(docs, revdict(vocab_dict), args.mod_file, args.output, size=300, avg=True)
+    doc_codes = doc_word2vec(docs, revdict(vocab_dict), args.mod_file, args.output, size=args.n_dim, avg=True)
     import pdb;pdb.set_trace()
 
 if __name__ == '__main__':

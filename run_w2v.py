@@ -14,17 +14,24 @@ from autoencoder.baseline.doc_word2vec import doc_word2vec
 from autoencoder.utils.io_utils import load_json, dump_json, write_file
 from autoencoder.preprocessing.preprocessing import load_corpus
 from autoencoder.datasets.the20news import CorpusIter20News
+# from autoencoder.datasets.movie_review_data import CorpusIterMRD
+# from autoencoder.datasets.wiki10plus import CorpusIterWiki10plus
 
 
 def train(args):
     vocab = load_json(args.vocab)
+    # import pdb;pdb.set_trace()
+    # load corpus
     corpus = CorpusIter20News(args.corpus, recursive=True, stem=True, with_docname=False)
+    # corpus = CorpusIterMRD(args.corpus, load_json(args.docnames), stem=True, with_docname=False)
+    # corpus = CorpusIterWiki10plus(args.corpus, load_json(args.docnames), stem=True, with_docname=False)
+    # print len([1 for x in corpus])
     corpus_iter = lambda: ([word for word in sentence if word in vocab] for sentence in corpus)
-
     w2v = Word2Vec(args.n_dim, window=args.window_size, \
         negative=args.negative, epoches=args.n_epoch)
     w2v.train(corpus_iter)
     save_w2v(w2v.model, args.save_model)
+    import pdb;pdb.set_trace()
 
 def test(args):
     corpus = load_corpus(args.corpus)
@@ -35,6 +42,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', action='store_true', help='train flag')
     parser.add_argument('--corpus', required=True, type=str, help='path to the corpus dir (in training phase) or file (in test phase)')
+    parser.add_argument('-doc', '--docnames', type=str, help='path to the docnames file (in training phase)')
     parser.add_argument('--vocab', required=True, type=str, help='path to the vocab file')
     parser.add_argument('-ne', '--n_epoch', required=True, type=int, help='num of epoches')
     parser.add_argument('-nd', '--n_dim', required=True, type=int, help='num of dimensions')

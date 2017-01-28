@@ -17,8 +17,9 @@ cached_stop_words = init_stopwords()
 
 
 class CorpusIterMRD(object):
-    def __init__(self, corpus_path, stem=True, with_docname=False):
+    def __init__(self, corpus_path, train_docs, stem=True, with_docname=False):
         self.corpus_path = corpus_path
+        self.train_docs = train_docs
         self.stem = stem
         self.with_docname = with_docname
 
@@ -27,6 +28,8 @@ class CorpusIterMRD(object):
             with open(self.corpus_path, 'r') as f:
                 for line in f:
                     idx, _, subj = line.split('\t')
+                    if not idx in self.train_docs:
+                        continue
                     words = tiny_tokenize(subj.lower(), stem=self.stem, stop_words=cached_stop_words)
                     if self.with_docname:
                         yield [words, [idx]]

@@ -20,24 +20,31 @@ cached_stop_words = init_stopwords()
 
 
 class CorpusIterWiki10plus(object):
-    def __init__(self, corpus_dir, stem=True, with_docname=False):
+    def __init__(self, corpus_dir, train_docs, stem=True, with_docname=False):
         self.stem = stem
+        self.train_docs = train_docs
         self.with_docname = with_docname
         self.files = get_all_files(corpus_dir, False)
 
     def __iter__(self):
+        count = 0
         for filename in self.files:
+            doc_name = os.path.basename(filename)
+            if not doc_name in self.train_docs:
+                continue
             try:
                 with open(filename, 'r') as fp:
+                    count += 1
                     text = fp.read().lower()
                     # remove punctuations, stopwords and *unnecessary digits*, stemming
                     words = tiny_tokenize(text, self.stem, cached_stop_words)
                     if self.with_docname:
-                        yield [words, [os.path.basename(filename)]]
+                        yield [words, [doc_name]]
                     else:
                         yield words
             except Exception as e:
                 raise e
+        print count
 
 def extract_contents(text, out_file):
     if not isinstance(text, unicode):

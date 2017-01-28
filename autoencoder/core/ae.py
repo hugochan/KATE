@@ -45,7 +45,7 @@ class AutoEncoder(object):
         input_layer = Input(shape=(self.input_size,))
 
         # "encoded" is the encoded representation of the input
-        encoded_layer = Dense(self.dim, init='glorot_normal', activation='sigmoid', name='Encoded_Layer')
+        encoded_layer = Dense(self.dim, init='glorot_normal', activation='tanh', name='Encoded_Layer')
         encoded = encoded_layer(input_layer)
 
         if self.comp_topk:
@@ -75,8 +75,7 @@ class AutoEncoder(object):
             print 'Loaded pretrained weights'
 
     def fit(self, train_X, val_X, nb_epoch=50, batch_size=100, feature_weights=None):
-        print 'Training autoencoder'
-        optimizer = Adadelta(lr=2.)
+        optimizer = Adadelta(lr=.5)
         # optimizer = Adam()
         # optimizer = Adagrad()
         if feature_weights is None:

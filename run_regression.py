@@ -69,7 +69,6 @@ def main():
             Y_new_val = Y[val_idx]
             results.append(neural_regression(X_new_train, Y_new_train, X_new_val, Y_new_val, \
                 X[test_idx], Y[test_idx], nb_epoch=args.n_epoch, batch_size=args.batch_size, seed=seed))
-        import pdb;pdb.set_trace()
         mean = np.mean(results)
         std = np.std(results)
         print 'r2 score on %s cross validation: %s (%s)' % (int(args.cross_validation), mean, std)
