@@ -6,7 +6,10 @@ Created on Jan, 2017
 '''
 from __future__ import absolute_import
 import os
+from random import shuffle
 from collections import defaultdict
+
+
 from ..preprocessing.preprocessing import get_all_files, init_stopwords, tiny_tokenize
 
 cached_stop_words = init_stopwords()
@@ -19,6 +22,7 @@ class CorpusIter20News(object):
         self.files = get_all_files(corpus_path, recursive)
 
     def __iter__(self):
+        shuffle(self.files)
         count = 0
         for filename in self.files:
             try:

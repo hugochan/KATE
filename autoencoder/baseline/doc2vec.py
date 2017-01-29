@@ -5,39 +5,41 @@ Created on Jan, 2017
 
 '''
 from __future__ import absolute_import
-import numpy as np
-from gensim.models.doc2vec import LabeledSentence
+import multiprocessing
 from gensim.models import Doc2Vec
 
-from ..utils.io_utils import dump_json
 
-def get_doc_codes(model, bow, vocab, size, avg=True):
-    vec = np.zeros(size)
-    count = 0
-    for idx, val in bow.iteritems():
-        word = vocab[int(idx)]
-        if word in model:
-            vec += model[word] * val
-            count += val
-        elif word.title() in model:
-            vec += model[word.title()] * val
-            count += val
-        elif word.upper() in model:
-            vec += model[word.upper()] * val
-            count += val
+class MyDoc2Vec(object):
+    def __init__(self, dim, hs=0, window=5, negative=5, epoches=5, dm=1, dm_concat=1):
+        super(MyDoc2Vec, self).__init__()
+        self.dim = dim
+        self.hs = hs
+        self.window = window
+        self.negative = negative
+        self.epoches = epoches
+        self.dm = dm
+        self.dm_concat = dm_concat
 
-    return vec / count if avg else vec
+    def train(self, corpus):
+        self.model = Doc2Vec(min_count=1, window=self.window, size=self.dim, \
+            workers=multiprocessing.cpu_count(), hs=self.hs,\
+            negative=self.negative, iter=1, dm=self.dm, dm_concat=self.dm_concat)
+        self.model.build_vocab(corpus())
+        for each in range(self.epoches):
+            self.model.train(corpus())
 
-def load_w2v(file):
-    model = Word2Vec.load_word2vec_format(file, binary=True)
-    return model
+        return self
 
-def doc_word2vec(corpus, vocab, mod_file, output, size=300, avg=True):
-    model = load_w2v(mod_file)
+def predict(model, corpus):
     doc_codes = {}
-    for key, doc_bow in corpus.iteritems():
-        vec = get_doc_codes(model, doc_bow, vocab, size, avg)
-        doc_codes[key] = vec.tolist()
-    dump_json(doc_codes, output)
+    for doc_words, doc_name in corpus():
+        vec = model.infer_vector(doc_words)
+        doc_codes[doc_name[0]] = vec
 
     return doc_codes
+
+def save_doc2vec(model, outfile):
+    model.save(outfile)
+
+def load_doc2vec(mod_file):
+    return Doc2Vec.load(mod_file)

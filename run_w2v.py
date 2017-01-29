@@ -13,10 +13,10 @@ from autoencoder.baseline.word2vec import Word2Vec, save_w2v, load_w2v
 from autoencoder.baseline.doc_word2vec import doc_word2vec
 from autoencoder.utils.io_utils import load_json, dump_json, write_file
 from autoencoder.preprocessing.preprocessing import load_corpus
-from autoencoder.datasets.reuters import CorpusIterReuters
+# from autoencoder.datasets.reuters import CorpusIterReuters
 # from autoencoder.datasets.the20news import CorpusIter20News
 # from autoencoder.datasets.movie_review_data import CorpusIterMRD
-# from autoencoder.datasets.wiki10plus import CorpusIterWiki10plus
+from autoencoder.datasets.wiki10plus import CorpusIterWiki10plus
 
 
 def train(args):
@@ -25,8 +25,8 @@ def train(args):
     # load corpus
     # corpus = CorpusIter20News(args.corpus[0], recursive=True, stem=True, with_docname=False)
     # corpus = CorpusIterMRD(args.corpus[0], load_json(args.docnames), stem=True, with_docname=False)
-    # corpus = CorpusIterWiki10plus(args.corpus[0], load_json(args.docnames), stem=True, with_docname=False)
-    corpus = CorpusIterReuters(args.corpus, load_json(args.docnames), with_docname=False)
+    corpus = CorpusIterWiki10plus(args.corpus[0], load_json(args.docnames), stem=True, with_docname=False)
+    # corpus = CorpusIterReuters(args.corpus, load_json(args.docnames), with_docname=False)
     # print len([1 for x in corpus])
     corpus_iter = lambda: ([word for word in sentence if word in vocab] for sentence in corpus)
     w2v = Word2Vec(args.n_dim, window=args.window_size, \

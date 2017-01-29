@@ -7,8 +7,9 @@ Created on Dec, 2016
 from __future__ import absolute_import
 import os
 import re
-from collections import Counter, defaultdict
+from random import shuffle
 import numpy as np
+from collections import Counter, defaultdict
 
 from ..preprocessing.preprocessing import build_vocab, generate_bow, count_words
 from ..utils.io_utils import dump_json
@@ -21,6 +22,7 @@ class CorpusIterReuters(object):
         self.with_docname = with_docname
 
     def __iter__(self):
+        shuffle(self.path_list)
         count = 0
         for path in self.path_list:
             with open(path, 'r') as f:

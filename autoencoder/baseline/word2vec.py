@@ -1,7 +1,12 @@
+'''
+Created on Jan, 2017
+
+@author: hugo
+
+'''
+from __future__ import absolute_import
 import multiprocessing
 from gensim.models import word2vec
-from gensim import utils
-from gensim import corpora
 
 
 class Word2Vec(object):

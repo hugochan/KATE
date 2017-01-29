@@ -8,6 +8,7 @@ from __future__ import absolute_import
 import os
 import re
 import numpy as np
+from random import shuffle
 from collections import Counter
 
 from ..preprocessing.preprocessing import init_stopwords, tiny_tokenize_xml, tiny_tokenize, get_all_files, count_words
@@ -27,6 +28,7 @@ class CorpusIterWiki10plus(object):
         self.files = get_all_files(corpus_dir, False)
 
     def __iter__(self):
+        shuffle(self.files)
         count = 0
         for filename in self.files:
             doc_name = os.path.basename(filename)
