@@ -33,8 +33,7 @@ class MyDoc2Vec(object):
 def predict(model, corpus):
     doc_codes = {}
     for doc_words, doc_name in corpus():
-        vec = model.infer_vector(doc_words)
-        doc_codes[doc_name[0]] = vec
+        doc_codes[doc_name[0]] = model.infer_vector(doc_words).tolist()
 
     return doc_codes
 
