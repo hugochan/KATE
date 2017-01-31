@@ -11,7 +11,7 @@ import numpy as np
 
 from autoencoder.preprocessing.preprocessing import load_corpus
 from autoencoder.utils.io_utils import dump_json, write_file
-from autoencoder.baseline.lda import train_lda, generate_doc_codes, load_model, show_topics
+from autoencoder.baseline.lda import train_lda, generate_doc_codes, load_model, show_topics, calc_pairwise_cosine
 
 def train(args):
     corpus = load_corpus(args.corpus)
@@ -27,7 +27,6 @@ def train(args):
     train_lda(doc_bow, vocab_dict, args.n_topics, args.save_model)
 
 def test(args):
-    n_topics = args.n_topics
     docs = load_corpus(args.corpus)['docs']
     doc_bow = {}
     for k in docs.keys():
@@ -38,24 +37,31 @@ def test(args):
         del docs[k]
 
     lda = load_model(args.load_model)
-    generate_doc_codes(lda, doc_bow, n_topics, args.output)
+    generate_doc_codes(lda, doc_bow, args.output)
     if args.save_topics:
-        topics = show_topics(lda, n_topics)
+        topics = show_topics(lda)
         write_file(topics, args.save_topics)
         print 'Saved topics file to %s' % args.save_topics
+
+    if args.calc_distinct:
+        score = calc_pairwise_cosine(lda)
+        print 'Average pairwise angle: %s' % score
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', action='store_true', help='train flag')
     parser.add_argument('--corpus', required=True, type=str, help='path to the corpus file')
-    parser.add_argument('-nt', '--n_topics', required=True, type=int, help='num of topics (default 100)')
+    parser.add_argument('-nt', '--n_topics', type=int, help='num of topics (default 100)')
     parser.add_argument('-sm', '--save_model', type=str, default='lda.mod', help='path to the output model')
     parser.add_argument('-lm', '--load_model', type=str, help='path to the trained model')
     parser.add_argument('-o', '--output', type=str, help='path to the output doc codes file')
     parser.add_argument('-st', '--save_topics', type=str, help='path to the output topics file')
+    parser.add_argument('-cd', '--calc_distinct', action='store_true', help='calc average pairwise angle')
     args = parser.parse_args()
 
     if args.train:
+        if not args.n_topics:
+            raise 'n_topics arg needed in training phase'
         train(args)
     else:
         if not args.output:

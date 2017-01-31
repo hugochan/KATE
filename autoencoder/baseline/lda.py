@@ -10,12 +10,15 @@ from gensim import corpora
 from gensim.models.ldamodel import LdaModel
 
 from ..utils.io_utils import dump_json
+from ..utils.op_utils import unitmatrix
+
 
 def train_lda(corpus, vocab_dict, n_topics, save_model):
     lda = LdaModel(corpus, num_topics=n_topics, id2word=vocab_dict)
     lda.save(save_model)
 
-def generate_doc_codes(model, corpus, n_topics, output):
+def generate_doc_codes(model, corpus, output):
+    n_topics = model.num_topics
     doc_codes = {}
     for key, doc_bow in corpus.iteritems():
         code = np.zeros(n_topics)
@@ -23,11 +26,25 @@ def generate_doc_codes(model, corpus, n_topics, output):
             code[idx] = val
         doc_codes[key] = code.tolist()
     dump_json(doc_codes, output)
+
     return doc_codes
 
-def show_topics(model, n_topics, n_words_per_topic=10):
+def show_topics(model, n_words_per_topic=10):
+    n_topics = model.num_topics
     topics = [zip(*model.show_topic(i, n_words_per_topic))[0] for i in range(n_topics)]
+
     return topics
+
+def calc_pairwise_cosine(model):
+    n = model.num_topics
+    weights = model.state.get_lambda()
+    weights = unitmatrix(weights) # normalize
+    score = 0.
+    for i in range(n):
+        for j in range(i + 1, n):
+            score += np.arccos(weights[i].dot(weights[j]))
+
+    return 2 * score / (n - 1) / n
 
 def load_model(model_file):
     return LdaModel.load(model_file)

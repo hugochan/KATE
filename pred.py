@@ -26,6 +26,16 @@ from autoencoder.utils.io_utils import dump_json, write_file
 
 #     return topics
 
+def calc_pairwise_cosine(ae):
+    weights = ae.encoder.get_weights()[0]
+    weights = unitmatrix(weights, axis=0) # normalize
+    n = weights.shape[1]
+    score = 0.
+    for i in range(n):
+        for j in range(i + 1, n):
+            score += np.arccos(weights[:, i].dot(weights[:, j]))
+    return 2 * score / (n - 1) / n
+
 def get_similar_words(ae, query_id, vocab, topn=10):
     weights = ae.encoder.get_weights()[0]
     weights = unitmatrix(weights) # normalize
@@ -83,6 +93,9 @@ def test(args):
         write_file(words, args.sample_words)
         print 'Saved sample words file to %s' % args.sample_words
 
+    if args.calc_distinct:
+        score = calc_pairwise_cosine(ae)
+        print 'Average pairwise angle: %s' % score
 
 def main():
     parser = argparse.ArgumentParser()
@@ -90,6 +103,7 @@ def main():
     parser.add_argument('-o', '--output', type=str, required=True, help='path to the output doc codes file')
     parser.add_argument('-st', '--save_topics', type=str, help='path to the output topics file')
     parser.add_argument('-sw', '--sample_words', type=str, help='path to the output sample words file')
+    parser.add_argument('-cd', '--calc_distinct', action='store_true', help='calc average pairwise angle')
     parser.add_argument('-la', '--load_arch', type=str, required=True, help='path to the trained arch file')
     parser.add_argument('-lw', '--load_weights', type=str, required=True, help='path to the trained weights file')
     args = parser.parse_args()
