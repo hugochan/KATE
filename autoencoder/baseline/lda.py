@@ -39,12 +39,12 @@ def calc_pairwise_cosine(model):
     n = model.num_topics
     weights = model.state.get_lambda()
     weights = unitmatrix(weights) # normalize
-    score = 0.
+    score = []
     for i in range(n):
         for j in range(i + 1, n):
-            score += np.arccos(weights[i].dot(weights[j]))
+            score.append(np.arccos(weights[i].dot(weights[j])))
 
-    return 2 * score / (n - 1) / n
+    return np.mean(score), np.std(score)
 
 def load_model(model_file):
     return LdaModel.load(model_file)

@@ -6,6 +6,7 @@ Created on Nov, 2016
 '''
 from __future__ import absolute_import
 import argparse
+import math
 import numpy as np
 
 from autoencoder.core.ae import AutoEncoder, load_model
@@ -30,11 +31,12 @@ def calc_pairwise_cosine(ae):
     weights = ae.encoder.get_weights()[0]
     weights = unitmatrix(weights, axis=0) # normalize
     n = weights.shape[1]
-    score = 0.
+    score = []
     for i in range(n):
         for j in range(i + 1, n):
-            score += np.arccos(weights[:, i].dot(weights[:, j]))
-    return 2 * score / (n - 1) / n
+            score.append(np.arccos(weights[:, i].dot(weights[:, j])))
+
+    return np.mean(score), np.std(score)
 
 def get_similar_words(ae, query_id, vocab, topn=10):
     weights = ae.encoder.get_weights()[0]
@@ -42,6 +44,7 @@ def get_similar_words(ae, query_id, vocab, topn=10):
     query = weights[query_id]
     score = query.dot(weights.T)
     vidx = score.argsort()[::-1][:topn]
+
     return [vocab[idx] for idx in vidx]
 
 def get_topics(ae, vocab, topn=10):
@@ -94,8 +97,8 @@ def test(args):
         print 'Saved sample words file to %s' % args.sample_words
 
     if args.calc_distinct:
-        score = calc_pairwise_cosine(ae)
-        print 'Average pairwise angle: %s' % score
+        mean, std = calc_pairwise_cosine(ae)
+        print 'Average pairwise angle (pi): %s (%s)' % (mean / math.pi, std / math.pi)
 
 def main():
     parser = argparse.ArgumentParser()

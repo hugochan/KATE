@@ -146,10 +146,9 @@ class KCompetitive(Layer):
         # N_reset = tf.sparse_to_dense(full_indices2, tf.shape(x), tf.reshape(tf.add(values2, tf.abs(tmp)), [-1]), default_value=0., validate_indices=False)
 
         # 2)
-        P_tmp = 6.26 * tf.reduce_sum(P - P_reset, 1, keep_dims=True) # 6.26
-        N_tmp = 6.26 * tf.reduce_sum(-N - N_reset, 1, keep_dims=True)
-        # P_tmp = 1 * batch_size * tf.reduce_sum(P - P_reset, 1, keep_dims=True) / (topk / 2)
-        # N_tmp = 1 * batch_size * tf.reduce_sum(-N - N_reset, 1, keep_dims=True) / (topk - topk / 2)
+        factor = 6.26
+        P_tmp = factor * tf.reduce_sum(P - P_reset, 1, keep_dims=True) # 6.26
+        N_tmp = factor * tf.reduce_sum(-N - N_reset, 1, keep_dims=True)
         P_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, P_tmp), [-1]), default_value=0., validate_indices=False)
         N_reset = tf.sparse_to_dense(full_indices2, tf.shape(x), tf.reshape(tf.add(values2, N_tmp), [-1]), default_value=0., validate_indices=False)
 

@@ -7,6 +7,7 @@ Created on Nov, 2016
 from __future__ import absolute_import
 import argparse
 from os import path
+import math
 import numpy as np
 
 from autoencoder.preprocessing.preprocessing import load_corpus
@@ -44,8 +45,8 @@ def test(args):
         print 'Saved topics file to %s' % args.save_topics
 
     if args.calc_distinct:
-        score = calc_pairwise_cosine(lda)
-        print 'Average pairwise angle: %s' % score
+        mean, std = calc_pairwise_cosine(lda)
+        print 'Average pairwise angle (pi): %s (%s)' % (mean / math.pi, std / math.pi)
 
 def main():
     parser = argparse.ArgumentParser()
