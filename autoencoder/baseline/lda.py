@@ -14,10 +14,12 @@ from ..utils.op_utils import unitmatrix
 
 
 def train_lda(corpus, vocab_dict, n_topics, n_iter, save_model):
-    lda = LdaModel(corpus, num_topics=n_topics, id2word=vocab_dict, passes=n_iter)
+    lda = LdaModel(corpus, num_topics=n_topics, id2word=vocab_dict, \
+        passes=n_iter, minimum_probability=1e-8)
     lda.save(save_model)
 
 def generate_doc_codes(model, corpus, output):
+    model.minimum_probability = 1e-8
     n_topics = model.num_topics
     doc_codes = {}
     for key, doc_bow in corpus.iteritems():
