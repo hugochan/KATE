@@ -36,7 +36,6 @@ def main():
         print 'Saved sample words file to %s' % args.sample_words
 
 
-    get_similar_words
     import pdb;pdb.set_trace()
 
 if __name__ == '__main__':

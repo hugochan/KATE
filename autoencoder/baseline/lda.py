@@ -13,8 +13,8 @@ from ..utils.io_utils import dump_json
 from ..utils.op_utils import unitmatrix
 
 
-def train_lda(corpus, vocab_dict, n_topics, save_model):
-    lda = LdaModel(corpus, num_topics=n_topics, id2word=vocab_dict)
+def train_lda(corpus, vocab_dict, n_topics, n_iter, save_model):
+    lda = LdaModel(corpus, num_topics=n_topics, id2word=vocab_dict, passes=n_iter)
     lda.save(save_model)
 
 def generate_doc_codes(model, corpus, output):

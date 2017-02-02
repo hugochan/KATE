@@ -7,6 +7,7 @@ Created on Jan, 2017
 from __future__ import absolute_import
 import argparse
 from os import path
+import timeit
 import numpy as np
 
 from autoencoder.baseline.word2vec import Word2Vec, save_w2v, load_w2v
@@ -31,7 +32,11 @@ def train(args):
     corpus_iter = lambda: ([word for word in sentence if word in vocab] for sentence in corpus)
     w2v = Word2Vec(args.n_dim, window=args.window_size, \
         negative=args.negative, epoches=args.n_epoch)
+
+    start = timeit.default_timer()
     w2v.train(corpus_iter)
+    print 'runtime: %ss' % (timeit.default_timer() - start)
+
     save_w2v(w2v.model, args.save_model)
     import pdb;pdb.set_trace()
 

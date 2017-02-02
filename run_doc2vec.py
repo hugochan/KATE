@@ -7,6 +7,7 @@ Created on Jan, 2017
 from __future__ import absolute_import
 import argparse
 from os import path
+import timeit
 import numpy as np
 from gensim.models.doc2vec import TaggedDocument
 
@@ -31,7 +32,11 @@ def train(args):
 
     d2v = MyDoc2Vec(args.n_dim, window=args.window_size, \
         negative=args.negative, epoches=args.n_epoch, dm_concat=1)
+
+    start = timeit.default_timer()
     d2v.train(corpus_iter)
+    print 'runtime: %ss' % (timeit.default_timer() - start)
+
     save_doc2vec(d2v.model, args.save_model)
     import pdb;pdb.set_trace()
 

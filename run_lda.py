@@ -7,6 +7,7 @@ Created on Nov, 2016
 from __future__ import absolute_import
 import argparse
 from os import path
+import timeit
 import math
 import numpy as np
 
@@ -25,7 +26,10 @@ def train(args):
         doc_bow.append(bows)
         del docs[k]
     vocab_dict = dict([(int(y), x) for x, y in vocab_dict.iteritems()])
-    train_lda(doc_bow, vocab_dict, args.n_topics, args.save_model)
+
+    start = timeit.default_timer()
+    train_lda(doc_bow, vocab_dict, args.n_topics, args.n_iter, args.save_model)
+    print 'runtime: %ss' % (timeit.default_timer() - start)
 
 def test(args):
     docs = load_corpus(args.corpus)['docs']
@@ -52,7 +56,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', action='store_true', help='train flag')
     parser.add_argument('--corpus', required=True, type=str, help='path to the corpus file')
-    parser.add_argument('-nt', '--n_topics', type=int, help='num of topics (default 100)')
+    parser.add_argument('-nt', '--n_topics', type=int, help='num of topics')
+    parser.add_argument('-iter', '--n_iter', type=int, help='num of iterations')
     parser.add_argument('-sm', '--save_model', type=str, default='lda.mod', help='path to the output model')
     parser.add_argument('-lm', '--load_model', type=str, help='path to the trained model')
     parser.add_argument('-o', '--output', type=str, help='path to the output doc codes file')

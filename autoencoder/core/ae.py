@@ -75,7 +75,7 @@ class AutoEncoder(object):
             print 'Loaded pretrained weights'
 
     def fit(self, train_X, val_X, nb_epoch=50, batch_size=100, feature_weights=None):
-        optimizer = Adadelta(lr=.5)
+        optimizer = Adadelta(lr=2.)
         # optimizer = Adam()
         # optimizer = Adagrad()
         if feature_weights is None:
