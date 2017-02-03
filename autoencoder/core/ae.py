@@ -45,7 +45,7 @@ class AutoEncoder(object):
         input_layer = Input(shape=(self.input_size,))
 
         # "encoded" is the encoded representation of the input
-        encoded_layer = Dense(self.dim, init='glorot_normal', activation='tanh', name='Encoded_Layer')
+        encoded_layer = Dense(self.dim, init='glorot_normal', activation='sigmoid', name='Encoded_Layer')
         encoded = encoded_layer(input_layer)
 
         if self.comp_topk:

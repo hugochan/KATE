@@ -13,7 +13,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.model_selection import ShuffleSplit
 
 from autoencoder.testing.classifier import multiclass_classifier, multilabel_classifier
-from autoencoder.utils.io_utils import load_json, load_marshal
+from autoencoder.utils.io_utils import load_json, load_pickle
 
 def main():
     parser = argparse.ArgumentParser()
@@ -40,11 +40,11 @@ def main():
     Y_test = [test_doc_labels[i] for i in test_doc_codes]
 
     # # DBN
-    # X_train = np.array(load_marshal(args.train_doc_codes))
-    # Y_train = load_marshal(args.train_doc_labels)
-    # X_test = np.array(load_marshal(args.test_doc_codes))
-    # Y_test = load_marshal(args.test_doc_labels)
-
+    # X_train = np.array(load_pickle(args.train_doc_codes))
+    # Y_train = load_pickle(args.train_doc_labels)
+    # X_test = np.array(load_pickle(args.test_doc_codes))
+    # Y_test = load_pickle(args.test_doc_labels)
+    # import pdb;pdb.set_trace()
 
     if args.multilabel_clf:
         encoder = MultiLabelBinarizer()

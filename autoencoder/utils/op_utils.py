@@ -56,8 +56,23 @@ def unitmatrix(matrix, norm='l2', axis=1):
         maxtrixlen = maxtrixlen.reshape(1, len(maxtrixlen)) if axis == 0 else maxtrixlen.reshape(len(maxtrixlen), 1)
         return matrix / maxtrixlen
 
-def corrupted_matrix(X, corruption_ratio=0.5, range_=[0, 1]):
+def add_gaussian_noise(X, corruption_ratio, range_=[0, 1]):
     X_noisy = X + corruption_ratio * np.random.normal(loc=0.0, scale=1.0, size=X.shape)
     X_noisy = np.clip(X_noisy, range_[0], range_[1])
 
     return X_noisy
+
+def add_masking_noise(X, fraction):
+    assert fraction >= 0 and fraction <= 1
+    X_noisy = np.copy(X)
+    nrow, ncol = X.shape
+    n = int(ncol * fraction)
+    for i in range(nrow):
+        idx_noisy  = np.random.choice(ncol, n, replace=False)
+        X_noisy[i, idx_noisy] = 0
+
+    return X_noisy
+
+# def add_salt_pepper_noise(X, pr):
+#     X_noisy = np.
+

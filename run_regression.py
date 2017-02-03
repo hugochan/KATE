@@ -11,7 +11,7 @@ from keras.utils import np_utils
 from sklearn.model_selection import ShuffleSplit
 
 from autoencoder.testing.regression import neural_regression
-from autoencoder.utils.io_utils import load_json, load_marshal
+from autoencoder.utils.io_utils import load_json, load_pickle
 
 def main():
     parser = argparse.ArgumentParser()
@@ -26,20 +26,20 @@ def main():
     args = parser.parse_args()
 
     # autoencoder
-    train_doc_codes = load_json(args.train_doc_codes)
-    train_doc_labels = load_json(args.train_doc_labels)
-    test_doc_codes = load_json(args.test_doc_codes)
-    test_doc_labels = load_json(args.test_doc_labels)
-    X_train = np.r_[train_doc_codes.values()]
-    Y_train = np.array([train_doc_labels[i] for i in train_doc_codes])
-    X_test = np.r_[test_doc_codes.values()]
-    Y_test = np.array([test_doc_labels[i] for i in test_doc_codes])
+    # train_doc_codes = load_json(args.train_doc_codes)
+    # train_doc_labels = load_json(args.train_doc_labels)
+    # test_doc_codes = load_json(args.test_doc_codes)
+    # test_doc_labels = load_json(args.test_doc_labels)
+    # X_train = np.r_[train_doc_codes.values()]
+    # Y_train = np.array([train_doc_labels[i] for i in train_doc_codes])
+    # X_test = np.r_[test_doc_codes.values()]
+    # Y_test = np.array([test_doc_labels[i] for i in test_doc_codes])
 
     # # DBN
-    # X_train = np.array(load_marshal(args.train_doc_codes))
-    # Y_train = load_marshal(args.train_doc_labels)
-    # X_test = np.array(load_marshal(args.test_doc_codes))
-    # Y_test = load_marshal(args.test_doc_labels)
+    X_train = np.array(load_pickle(args.train_doc_codes))
+    Y_train = load_pickle(args.train_doc_labels)
+    X_test = np.array(load_pickle(args.test_doc_codes))
+    Y_test = load_pickle(args.test_doc_labels)
 
     seed = 7
     np.random.seed(seed)
