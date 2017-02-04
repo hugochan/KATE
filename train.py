@@ -37,7 +37,7 @@ def train(args):
     elif args.noise == 'mn':
         X_docs_noisy = add_masking_noise(np.r_[X_docs], 0.01)
     else:
-        raise 'noise arg should left None or be one of gs, sp or mn'
+        pass
 
     n_val = args.n_val
     # X_train = np.r_[X_docs[:-n_val]]
@@ -62,7 +62,7 @@ def train(args):
 
     ae = model(n_vocab, args.n_dim, comp_topk=args.comp_topk, weights_file=args.load_weights)
     ae.fit([X_train_noisy, X_train], [X_val_noisy, X_val], nb_epoch=args.n_epoch, \
-            batch_size=args.batch_size, feature_weights=None)
+            batch_size=args.batch_size, feature_weights=None, contractive=args.contractive)
 
     print 'runtime: %ss' % (timeit.default_timer() - start)
 
@@ -83,11 +83,12 @@ def main():
     parser.add_argument('-ck', '--comp_topk', type=int, help='competitive topk')
     parser.add_argument('-lw', '--load_weights', type=str, help='path to the pretrained weights file')
     parser.add_argument('-sm', '--save_model', type=str, default='model', help='path to the output model')
+    parser.add_argument('-contr', '--contractive', type=float, help='contractive lambda')
     parser.add_argument('--noise', type=str, help='noise type: gs for Gaussian noise, sp for salt-and-pepper or mn for masking noise')
     args = parser.parse_args()
 
     if args.noise and not args.noise in ['gs', 'sp', 'mn']:
-        raise 'noise arg should left None or be one of gs, sp or mn'
+        raise Exception('noise arg should left None or be one of gs, sp or mn')
     train(args)
 
 if __name__ == '__main__':

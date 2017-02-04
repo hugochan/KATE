@@ -73,13 +73,13 @@ def main():
     if args.train:
         if not args.n_epoch or not args.n_dim or \
             not args.window_size or not args.negative:
-            raise 'n_epoch, n_dim, window_size and negative args needed in test phase'
+            raise Exception('n_epoch, n_dim, window_size and negative args needed in test phase')
         train(args)
     else:
         if not args.output:
-            raise 'output arg needed in test phase'
+            raise Exception('output arg needed in test phase')
         if not args.load_model:
-            raise 'load_model arg needed in test phase'
+            raise Exception('load_model arg needed in test phase')
         test(args)
 
 if __name__ == '__main__':
