@@ -73,6 +73,14 @@ def add_masking_noise(X, fraction):
 
     return X_noisy
 
-# def add_salt_pepper_noise(X, pr):
-#     X_noisy = np.
+def add_salt_pepper_noise(X, fraction):
+    assert fraction >= 0 and fraction <= 1
+    X_noisy = np.copy(X)
+    nrow, ncol = X.shape
+    n = int(ncol * fraction)
+    for i in range(nrow):
+        idx_noisy  = np.random.choice(ncol, n, replace=False)
+        X_noisy[i, idx_noisy] = np.random.binomial(1, .5, n)
+
+    return X_noisy
 
