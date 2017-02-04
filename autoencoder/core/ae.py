@@ -17,7 +17,7 @@ from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.layers.core import Activation
 # from keras.layers.normalization import BatchNormalization
 
-from ..utils.keras_utils import Dense_tied, weighted_binary_crossentropy, KCompetitive
+from ..utils.keras_utils import Dense_tied, KCompetitive, weighted_binary_crossentropy, contractive_loss
 from ..utils.io_utils import dump_json, load_json
 
 class AutoEncoder(object):
@@ -74,15 +74,20 @@ class AutoEncoder(object):
             self.autoencoder.load_weights(weights_file, by_name=True)
             print 'Loaded pretrained weights'
 
-    def fit(self, train_X, val_X, nb_epoch=50, batch_size=100, feature_weights=None):
+    def fit(self, train_X, val_X, nb_epoch=50, batch_size=100, feature_weights=None, contractive=None):
         optimizer = Adadelta(lr=2.)
         # optimizer = Adam()
         # optimizer = Adagrad()
-        if feature_weights is None:
-            self.autoencoder.compile(optimizer=optimizer, loss='binary_crossentropy') # kld, binary_crossentropy, mse
+        if contractive:
+            print 'Using contractive loss, lambda: %s' % contractive
+            self.autoencoder.compile(optimizer=optimizer, loss=contractive_loss(self, contractive))
         else:
-            print 'Using weighted loss'
-            self.autoencoder.compile(optimizer=optimizer, loss=weighted_binary_crossentropy(feature_weights)) # kld, binary_crossentropy, mse
+            if feature_weights is None:
+                print 'Using binary crossentropy'
+                self.autoencoder.compile(optimizer=optimizer, loss='binary_crossentropy') # kld, binary_crossentropy, mse
+            else:
+                print 'Using weighted loss'
+                self.autoencoder.compile(optimizer=optimizer, loss=weighted_binary_crossentropy(feature_weights))
 
         self.autoencoder.fit(train_X[0], train_X[1],
                         nb_epoch=nb_epoch,
