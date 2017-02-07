@@ -47,6 +47,14 @@ def get_similar_words(ae, query_id, vocab, topn=10):
 
     return [vocab[idx] for idx in vidx]
 
+def translate_words(ae, query, vocab, revocab, topn=10):
+    weights = ae.encoder.get_weights()[0]
+    weights = unitmatrix(weights) # normalize
+    query_vec = weights[vocab[query[0]]] - weights[vocab[query[1]]] + weights[vocab[query[2]]]
+    score = query_vec.dot(weights.T)
+    vidx = score.argsort()[::-1][:topn]
+    return [revocab[idx] for idx in vidx]
+
 def get_topics(ae, vocab, topn=10):
     topics = []
     weights = ae.encoder.get_weights()[0]
@@ -89,13 +97,19 @@ def test(args):
         print 'Saved topics file to %s' % args.save_topics
 
     if args.sample_words:
+        revocab = revdict(vocab)
         queries = ['weapon', 'christian', 'compani', 'israel', 'law', 'hockey', 'comput', 'space']
         words = []
         for each in queries:
-            words.append(get_similar_words(ae, vocab[each], revdict(vocab), topn=11))
+            words.append(get_similar_words(ae, vocab[each], revocab, topn=11))
         write_file(words, args.sample_words)
         print 'Saved sample words file to %s' % args.sample_words
-
+    if args.translate_words:
+        revocab = revdict(vocab)
+        queries = [['father', 'man', 'woman'], ['mother', 'woman', 'man']]
+        for each in queries:
+            print each
+            print translate_words(ae, each, vocab, revocab, topn=10)
     if args.calc_distinct:
         mean, std = calc_pairwise_cosine(ae)
         print 'Average pairwise angle (pi): %s (%s)' % (mean / math.pi, std / math.pi)
@@ -106,6 +120,7 @@ def main():
     parser.add_argument('-o', '--output', type=str, required=True, help='path to the output doc codes file')
     parser.add_argument('-st', '--save_topics', type=str, help='path to the output topics file')
     parser.add_argument('-sw', '--sample_words', type=str, help='path to the output sample words file')
+    parser.add_argument('-tw', '--translate_words', action='store_true', help='translate words flag')
     parser.add_argument('-cd', '--calc_distinct', action='store_true', help='calc average pairwise angle')
     parser.add_argument('-la', '--load_arch', type=str, required=True, help='path to the trained arch file')
     parser.add_argument('-lw', '--load_weights', type=str, required=True, help='path to the trained weights file')
