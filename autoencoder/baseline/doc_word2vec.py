@@ -13,8 +13,9 @@ from ..utils.io_utils import dump_json
 def get_doc_codes(model, bow, vocab, avg=True):
     vec = np.zeros(model.vector_size)
     count = 0
-    for idx, val in bow.iteritems():
+    for idx in bow:
         word = vocab[int(idx)]
+        val = bow[idx]
         if word in model:
             vec += model[word] * val
             count += val
@@ -33,8 +34,8 @@ def load_w2v(file):
 
 def doc_word2vec(model, corpus, vocab, output, avg=True):
     doc_codes = {}
-    for key, doc_bow in corpus.iteritems():
-        vec = get_doc_codes(model, doc_bow, vocab, avg)
+    for key in corpus:
+        vec = get_doc_codes(model, corpus[key], vocab, avg)
         doc_codes[key] = vec.tolist()
     dump_json(doc_codes, output)
 
