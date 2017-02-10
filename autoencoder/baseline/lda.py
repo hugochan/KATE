@@ -22,9 +22,9 @@ def generate_doc_codes(model, corpus, output):
     model.minimum_probability = 1e-8
     n_topics = model.num_topics
     doc_codes = {}
-    for key in corpus:
+    for key, doc_bow in corpus.iteritems():
         code = np.zeros(n_topics)
-        for idx, val in model[corpus[key]]:
+        for idx, val in model[doc_bow]:
             code[idx] = val
         doc_codes[key] = code.tolist()
     dump_json(doc_codes, output)
