@@ -41,9 +41,24 @@ def init_stopwords():
     return cached_stop_words
 
 def tiny_tokenize(text, stem=False, stop_words=[]):
-    return [EnglishStemmer().stem(token) if stem else token for token in wordpunct_tokenize(
-                        re.sub('[%s]' % re.escape(string.punctuation), ' ', text.decode(encoding='UTF-8', errors='ignore'))) if
-                        not token.isdigit() and not token in stop_words]
+    words = []
+    for token in wordpunct_tokenize(re.sub('[%s]' % re.escape(string.punctuation), ' ', \
+            text.decode(encoding='UTF-8', errors='ignore'))):
+        if not token.isdigit() and not token in stop_words:
+            if stem:
+                try:
+                    w = EnglishStemmer().stem(token)
+                except Exception as e:
+                    w = token
+            else:
+                w = token
+            words.append(w)
+
+    return words
+
+    # return [EnglishStemmer().stem(token) if stem else token for token in wordpunct_tokenize(
+    #                     re.sub('[%s]' % re.escape(string.punctuation), ' ', text.decode(encoding='UTF-8', errors='ignore'))) if
+    #                     not token.isdigit() and not token in stop_words]
 
 def tiny_tokenize_xml(text, stem=False, stop_words=[]):
     return [EnglishStemmer().stem(token) if stem else token for token in wordpunct_tokenize(
@@ -60,7 +75,7 @@ def count_words(docs):
     # count the number of times a word appears in a corpus
     word_freq = defaultdict(lambda: 0)
     for each in docs:
-        for word, val in each.items():
+        for word, val in each.iteritems():
             word_freq[word] += val
 
     return word_freq
