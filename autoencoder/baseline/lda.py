@@ -50,13 +50,13 @@ def calc_pairwise_cosine(model):
 
 def calc_pairwise_dev(ae):
     # the average squared deviation from 0 (90 degree)
-    weights = ae.encoder.get_weights()[0]
-    weights = unitmatrix(weights, axis=0) # normalize
-    n = weights.shape[1]
+    n = model.num_topics
+    weights = model.state.get_lambda()
+    weights = unitmatrix(weights) # normalize
     score = 0.
     for i in range(n):
         for j in range(i + 1, n):
-            score += (weights[:, i].dot(weights[:, j]))**2
+            score += (weights[i].dot(weights[j]))**2
 
     return np.sqrt(2. * score / n / (n - 1))
 
