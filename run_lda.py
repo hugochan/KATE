@@ -42,7 +42,7 @@ def test(args):
         del docs[k]
 
     lda = load_model(args.load_model)
-    # generate_doc_codes(lda, doc_bow, args.output)
+    generate_doc_codes(lda, doc_bow, args.output)
     if args.save_topics:
         topics = show_topics(lda)
         write_file(topics, args.save_topics)
