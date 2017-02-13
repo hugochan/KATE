@@ -13,7 +13,7 @@ import numpy as np
 
 from autoencoder.preprocessing.preprocessing import load_corpus
 from autoencoder.utils.io_utils import dump_json, write_file
-from autoencoder.baseline.lda import train_lda, generate_doc_codes, load_model, show_topics, calc_pairwise_cosine
+from autoencoder.baseline.lda import train_lda, generate_doc_codes, load_model, show_topics, calc_pairwise_cosine, calc_pairwise_dev
 
 def train(args):
     corpus = load_corpus(args.corpus)
@@ -42,15 +42,17 @@ def test(args):
         del docs[k]
 
     lda = load_model(args.load_model)
-    generate_doc_codes(lda, doc_bow, args.output)
+    # generate_doc_codes(lda, doc_bow, args.output)
     if args.save_topics:
         topics = show_topics(lda)
         write_file(topics, args.save_topics)
         print 'Saved topics file to %s' % args.save_topics
 
     if args.calc_distinct:
-        mean, std = calc_pairwise_cosine(lda)
-        print 'Average pairwise angle (pi): %s (%s)' % (mean / math.pi, std / math.pi)
+        # mean, std = calc_pairwise_cosine(lda)
+        # print 'Average pairwise angle (pi): %s (%s)' % (mean / math.pi, std / math.pi)
+        sd = calc_pairwise_dev(lda)
+        print 'Average squared deviation from 0 (90 degree): %s' % sd
 
 def main():
     parser = argparse.ArgumentParser()

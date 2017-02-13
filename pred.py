@@ -38,6 +38,18 @@ def calc_pairwise_cosine(ae):
 
     return np.mean(score), np.std(score)
 
+def calc_pairwise_dev(ae):
+    # the average squared deviation from 0 (90 degree)
+    weights = ae.encoder.get_weights()[0]
+    weights = unitmatrix(weights, axis=0) # normalize
+    n = weights.shape[1]
+    score = 0.
+    for i in range(n):
+        for j in range(i + 1, n):
+            score += (weights[:, i].dot(weights[:, j]))**2
+
+    return np.sqrt(2. * score / n / (n - 1))
+
 def get_similar_words(ae, query_id, vocab, topn=10):
     weights = ae.encoder.get_weights()[0]
     weights = unitmatrix(weights) # normalize
@@ -111,8 +123,10 @@ def test(args):
             print each
             print translate_words(ae, each, vocab, revocab, topn=10)
     if args.calc_distinct:
-        mean, std = calc_pairwise_cosine(ae)
-        print 'Average pairwise angle (pi): %s (%s)' % (mean / math.pi, std / math.pi)
+        # mean, std = calc_pairwise_cosine(ae)
+        # print 'Average pairwise angle (pi): %s (%s)' % (mean / math.pi, std / math.pi)
+        sd = calc_pairwise_dev(ae)
+        print 'Average squared deviation from 0 (90 degree): %s' % sd
 
 def main():
     parser = argparse.ArgumentParser()
