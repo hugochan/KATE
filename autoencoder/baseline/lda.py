@@ -48,7 +48,7 @@ def calc_pairwise_cosine(model):
 
     return np.mean(score), np.std(score)
 
-def calc_pairwise_dev(ae):
+def calc_pairwise_dev(model):
     # the average squared deviation from 0 (90 degree)
     n = model.num_topics
     weights = model.state.get_lambda()
