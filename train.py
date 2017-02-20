@@ -27,6 +27,12 @@ def train(args):
         X_docs.append(vecnorm(doc2vec(docs[k], n_vocab), 'logmax1', 0))
         del docs[k]
 
+    # replicate the training set for scalability experiments
+    fr = 1.5 - 1
+    size = len(X_docs)
+    X_docs.extend(X_docs[:int(fr * size)])
+    print fr
+
     np.random.seed(0)
     np.random.shuffle(X_docs)
     if args.noise == 'gs':
@@ -72,6 +78,8 @@ def train(args):
         save_model(ae, arch_file, weights_file)
     print 'Saved model arch and weights file to %s and %s, respectively.' \
             % (arch_file, weights_file)
+
+    print 'fr %s' % fr
 
 def main():
     parser = argparse.ArgumentParser()

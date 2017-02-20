@@ -82,7 +82,7 @@ class VarAutoEncoder(object):
         print 'Training variational autoencoder'
         # optimizer = Adadelta(lr=1.)
         # optimizer = 'rmsprop'
-        optimizer = Adadelta(lr=1.5)
+        optimizer = Adadelta(lr=2.)
         self.vae.compile(optimizer=optimizer, loss=self.vae_loss)
 
         self.vae.fit(train_X[0], train_X[1],
@@ -100,7 +100,7 @@ class VarAutoEncoder(object):
         return self
 
     def vae_loss(self, x, x_decoded_mean):
-        xent_loss = objectives.binary_crossentropy(x, x_decoded_mean)
+        xent_loss =  K.sum(K.binary_crossentropy(x_decoded_mean, x), axis=-1)
         # xent_loss = self.input_size * objectives.binary_crossentropy(x, x_decoded_mean)
         kl_loss = - 0.5 * K.sum(1 + self.z_log_var - K.square(self.z_mean) - K.exp(self.z_log_var), axis=-1)
         return xent_loss + kl_loss
