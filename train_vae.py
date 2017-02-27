@@ -40,7 +40,7 @@ def train(args):
 
     start = timeit.default_timer()
 
-    vae = VarAutoEncoder(n_vocab, args.n_intermediate_dim, args.n_dim, weights_file=args.load_weights)
+    vae = VarAutoEncoder(n_vocab, args.n_intermediate_dim, args.n_dim, comp_topk=args.comp_topk, weights_file=args.load_weights)
     vae.fit([X_train, X_train], [X_val, X_val], nb_epoch=args.n_epoch, batch_size=args.batch_size)
 
     print 'runtime: %ss' % (timeit.default_timer() - start)
@@ -56,6 +56,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', type=str, required=True, help='path to the input corpus file')
     parser.add_argument('-nid', '--n_intermediate_dim', type=int, default=512, help='num of intermediate dimensions (default 512)')
+    parser.add_argument('-ck', '--comp_topk', type=int, help='competitive topk')
     parser.add_argument('-nd', '--n_dim', type=int, default=128, help='num of dimensions (default 128)')
     parser.add_argument('-ne', '--n_epoch', type=int, default=100, help='num of epoches (default 100)')
     parser.add_argument('-bs', '--batch_size', type=int, default=100, help='batch size (default 100)')

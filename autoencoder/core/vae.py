@@ -16,7 +16,7 @@ from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.layers.advanced_activations import PReLU
 import keras.backend as K
 
-from ..utils.keras_utils import Dense_tied
+from ..utils.keras_utils import Dense_tied, KCompetitive
 from ..utils.io_utils import dump_json, load_json
 
 
@@ -31,11 +31,12 @@ class VarAutoEncoder(object):
 
         """
 
-    def __init__(self, input_size, intermediate_dim, dim, weights_file=None, epsilon_std=1.0):
+    def __init__(self, input_size, intermediate_dim, dim, comp_topk=None, weights_file=None, epsilon_std=1.0):
         self.input_size = input_size
         self.intermediate_dim = intermediate_dim
         self.latent_dim = dim
         self.epsilon_std = epsilon_std
+        self.comp_topk = comp_topk
 
         self.build(weights_file)
 
@@ -45,6 +46,10 @@ class VarAutoEncoder(object):
         h1 = hidden_layer1(input_layer)
         self.z_mean = Dense(self.latent_dim, init='glorot_normal')(h1)
         self.z_log_var = Dense(self.latent_dim, init='glorot_normal')(h1)
+
+        if self.comp_topk:
+            print 'add k-competitive layer'
+            self.z_mean = KCompetitive(self.comp_topk)(self.z_mean)
 
         # note that "output_shape" isn't necessary with the TensorFlow backend
         latent_layer = Lambda(self.sampling, output_shape=(self.latent_dim,))([self.z_mean, self.z_log_var])
@@ -117,12 +122,13 @@ class VarAutoEncoder(object):
 def save_vae_model(model, arch_file, weights_file):
     arch = {'input_size': model.input_size,
             'intermediate_dim': model.intermediate_dim,
-            'dim': model.latent_dim}
+            'dim': model.latent_dim,
+            'comp_topk': model.comp_topk}
     model.vae.save_weights(weights_file)
     dump_json(arch, arch_file)
 
 def load_vae_model(model, arch_file, weights_file):
     arch = load_json(arch_file)
-    ae = model(arch['input_size'], arch['intermediate_dim'], arch['dim'], weights_file=weights_file)
+    ae = model(arch['input_size'], arch['intermediate_dim'], arch['dim'], comp_topk=arch['comp_topk'], weights_file=weights_file)
 
     return ae
