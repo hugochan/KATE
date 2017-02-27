@@ -40,9 +40,8 @@ def train(args):
 
     start = timeit.default_timer()
 
-    size = X_train.shape[0] - X_train.shape[0] % args.batch_size
-    vae = VarAutoEncoder(n_vocab, args.n_intermediate_dim, args.n_dim, args.batch_size, weights_file=args.load_weights)
-    vae.fit([X_train[:size], X_train[:size]], [X_val, X_val], nb_epoch=args.n_epoch)
+    vae = VarAutoEncoder(n_vocab, args.n_intermediate_dim, args.n_dim, weights_file=args.load_weights)
+    vae.fit([X_train, X_train], [X_val, X_val], nb_epoch=args.n_epoch, batch_size=args.batch_size)
 
     print 'runtime: %ss' % (timeit.default_timer() - start)
 
