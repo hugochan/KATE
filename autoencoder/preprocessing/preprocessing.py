@@ -67,7 +67,7 @@ def tiny_tokenize_xml(text, stem=False, stop_words=[]):
 
 def get_all_files(corpus_path, recursive=False):
     if recursive:
-        return [os.path.join(root, file) for root, dirnames, filenames in os.walk(corpus_path) for file in filenames if not file.startswith('.')]
+        return [os.path.join(root, file) for root, dirnames, filenames in os.walk(corpus_path) for file in filenames if os.path.isfile(os.path.join(root, file)) and not file.startswith('.')]
     else:
         return [os.path.join(corpus_path, filename) for filename in os.listdir(corpus_path) if os.path.isfile(os.path.join(corpus_path, filename)) and not filename.startswith('.')]
 
