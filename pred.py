@@ -76,6 +76,15 @@ def get_topics(ae, vocab, topn=10):
 
     return topics
 
+def get_topics_strength(ae, vocab, topn=10):
+    topics = []
+    weights = ae.encoder.get_weights()[0]
+    for idx in range(ae.dim):
+        token_idx = np.argsort(weights[:, idx])[::-1][:topn]
+        topics.append([(vocab[x], weights[x, idx]) for x in token_idx])
+
+    return topics
+
 def print_topics(topics):
     for i in range(len(topics)):
         str_topic = ' + '.join(['%s * %s' % (prob, token) for token, prob in topics[i]])
@@ -104,8 +113,10 @@ def test(args):
     print 'Saved doc codes file to %s' % args.output
 
     if args.save_topics:
-        topics = get_topics(ae, revdict(vocab), topn=10)
-        write_file(topics, args.save_topics)
+        topics_strength = get_topics_strength(ae, revdict(vocab), topn=10)
+        save_topics_strength(topics_strength, args.save_topics)
+        # topics = get_topics(ae, revdict(vocab), topn=10)
+        # write_file(topics, args.save_topics)
         print 'Saved topics file to %s' % args.save_topics
 
     if args.sample_words:
@@ -127,6 +138,15 @@ def test(args):
         # print 'Average pairwise angle (pi): %s (%s)' % (mean / math.pi, std / math.pi)
         sd = calc_pairwise_dev(ae)
         print 'Average squared deviation from 0 (90 degree): %s' % sd
+
+def save_topics_strength(topics_prob, out_file):
+    try:
+        with open(out_file, 'w') as datafile:
+            for topic in topics_prob:
+                datafile.write(' + '.join(["%s * %s" % each for each in topic]) + '\n')
+                datafile.write('\n')
+    except Exception as e:
+        raise e
 
 def main():
     parser = argparse.ArgumentParser()
