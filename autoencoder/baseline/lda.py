@@ -18,6 +18,8 @@ def train_lda(corpus, vocab_dict, n_topics, n_iter, save_model):
         passes=n_iter, minimum_probability=1e-3)
     lda.save(save_model)
 
+    return lda
+
 def generate_doc_codes(model, corpus, output):
     model.minimum_probability = 1e-3
     n_topics = model.num_topics
@@ -34,6 +36,12 @@ def generate_doc_codes(model, corpus, output):
 def show_topics(model, n_words_per_topic=10):
     n_topics = model.num_topics
     topics = [zip(*model.show_topic(i, n_words_per_topic))[0] for i in range(n_topics)]
+
+    return topics
+
+def show_topics_prob(model, n_words_per_topic=10):
+    n_topics = model.num_topics
+    topics = [model.show_topic(i, n_words_per_topic) for i in range(n_topics)]
 
     return topics
 

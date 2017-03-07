@@ -13,13 +13,14 @@ import numpy as np
 
 from autoencoder.preprocessing.preprocessing import load_corpus
 from autoencoder.utils.io_utils import dump_json, write_file
-from autoencoder.baseline.lda import train_lda, generate_doc_codes, load_model, show_topics, calc_pairwise_cosine, calc_pairwise_dev
+from autoencoder.baseline.lda import train_lda, generate_doc_codes, load_model, show_topics, show_topics_prob, calc_pairwise_cosine, calc_pairwise_dev
 
 def train(args):
     corpus = load_corpus(args.corpus)
     docs, vocab_dict = corpus['docs'], corpus['vocab']
     doc_bow = []
-    for k in docs.keys():
+    doc_keys = docs.keys()
+    for k in doc_keys:
         bows = []
         for idx, count in docs[k].iteritems():
             bows.append((int(idx), count))
@@ -27,9 +28,24 @@ def train(args):
         del docs[k]
     vocab_dict = dict([(int(y), x) for x, y in vocab_dict.iteritems()])
 
+    n_samples = len(doc_bow)
+    doc_bow = np.array(doc_bow)
+    np.random.seed(0)
+    val_idx = np.random.choice(range(n_samples), args.n_val, replace=False)
+    train_idx = list(set(range(n_samples)) - set(val_idx))
+    dbow_train = doc_bow[train_idx].tolist()
+    dbow_val = doc_bow[val_idx].tolist()
+    del doc_bow
+
     start = timeit.default_timer()
-    train_lda(doc_bow, vocab_dict, args.n_topics, args.n_iter, args.save_model)
+    lda = train_lda(dbow_train, vocab_dict, args.n_topics, args.n_iter, args.save_model)
     print 'runtime: %ss' % (timeit.default_timer() - start)
+
+    if args.output:
+        doc_keys = np.array(doc_keys)
+        generate_doc_codes(lda, dict(zip(doc_keys[train_idx].tolist(), dbow_train)), args.output)
+        generate_doc_codes(lda, dict(zip(doc_keys[val_idx].tolist(), dbow_val)), args.output + '.val')
+        print 'Saved doc codes file to %s and %s' % (args.output, args.output + '.val')
 
 def test(args):
     docs = load_corpus(args.corpus)['docs']
@@ -43,9 +59,13 @@ def test(args):
 
     lda = load_model(args.load_model)
     generate_doc_codes(lda, doc_bow, args.output)
+    print 'Saved doc codes file to %s' % args.output
+
     if args.save_topics:
-        topics = show_topics(lda)
-        write_file(topics, args.save_topics)
+        topics_prob = show_topics_prob(lda)
+        save_topics_prob(topics_prob, args.save_topics)
+        # topics = show_topics(lda)
+        # write_file(topics, args.save_topics)
         print 'Saved topics file to %s' % args.save_topics
 
     if args.calc_distinct:
@@ -54,9 +74,19 @@ def test(args):
         sd = calc_pairwise_dev(lda)
         print 'Average squared deviation from 0 (90 degree): %s' % sd
 
+def save_topics_prob(topics_prob, out_file):
+    try:
+        with open(out_file, 'w') as datafile:
+            for topic in topics_prob:
+                datafile.write(' + '.join(["%s * %s" % each for each in topic]) + '\n')
+                datafile.write('\n')
+    except Exception as e:
+        raise e
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', action='store_true', help='train flag')
+    parser.add_argument('-nv', '--n_val', type=int, default=1000, help='size of validation set (default 1000)')
     parser.add_argument('--corpus', required=True, type=str, help='path to the corpus file')
     parser.add_argument('-nt', '--n_topics', type=int, help='num of topics')
     parser.add_argument('-iter', '--n_iter', type=int, help='num of iterations')
