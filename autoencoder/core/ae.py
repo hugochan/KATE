@@ -45,7 +45,7 @@ class AutoEncoder(object):
         input_layer = Input(shape=(self.input_size,))
 
         # "encoded" is the encoded representation of the input
-        encoded_layer = Dense(self.dim, init='glorot_normal', activation='sigmoid', name='Encoded_Layer')
+        encoded_layer = Dense(self.dim, activation='tanh', kernel_initializer="glorot_normal", name="Encoded_Layer")
         encoded = encoded_layer(input_layer)
 
         if self.comp_topk:
@@ -54,21 +54,20 @@ class AutoEncoder(object):
 
         # "decoded" is the lossy reconstruction of the input
         # add non-negativity contraint to ensure probabilistic interpretations
-        # decoded = Dense(self.input_size, init='glorot_normal', activation='sigmoid', name='Decoded_Layer')(encoded)
-        decoded = Dense_tied(self.input_size, init='glorot_normal', activation='sigmoid', tied_to=encoded_layer, name='Decoded_Layer')(encoded)
+        decoded = Dense_tied(self.input_size, activation='sigmoid', tied_to=encoded_layer, name='Decoded_Layer')(encoded)
 
         # this model maps an input to its reconstruction
-        self.autoencoder = Model(input=input_layer, output=decoded)
+        self.autoencoder = Model(outputs=decoded, inputs=input_layer)
 
         # this model maps an input to its encoded representation
-        self.encoder = Model(input=input_layer, output=encoded)
+        self.encoder = Model(outputs=encoded, inputs=input_layer)
 
         # create a placeholder for an encoded (32-dimensional) input
         encoded_input = Input(shape=(self.dim,))
         # retrieve the last layer of the autoencoder model
         decoder_layer = self.autoencoder.layers[-1]
         # create the decoder model
-        self.decoder = Model(input=encoded_input, output=decoder_layer(encoded_input))
+        self.decoder = Model(outputs=decoder_layer(encoded_input), inputs=encoded_input)
 
         if not weights_file is None:
             self.autoencoder.load_weights(weights_file, by_name=True)
@@ -90,7 +89,7 @@ class AutoEncoder(object):
                 self.autoencoder.compile(optimizer=optimizer, loss=weighted_binary_crossentropy(feature_weights))
 
         self.autoencoder.fit(train_X[0], train_X[1],
-                        nb_epoch=nb_epoch,
+                        epochs=nb_epoch,
                         batch_size=batch_size,
                         shuffle=True,
                         validation_data=(val_X[0], val_X[1]),
@@ -109,9 +108,9 @@ class AutoEncoder(object):
 
         # "encoded" is the encoded representation of the input
         if not init_weights is None:
-            encoded_layer = Dense(self.dim, init='glorot_normal', weights=init_weights)
+            encoded_layer = Dense(self.dim, kernel_initializer='glorot_normal', weights=init_weights)
         else:
-            encoded_layer = Dense(self.dim, init='glorot_normal')
+            encoded_layer = Dense(self.dim, kernel_initializer='glorot_normal')
 
         encoded = encoded_layer(input_layer)
         encoded = BatchNormalization((self.dim,))(encoded)
@@ -119,25 +118,24 @@ class AutoEncoder(object):
 
         # "decoded" is the lossy reconstruction of the input
         # add non-negativity contraint to ensure probabilistic interpretations
-        # decoded = Dense(n_feature, init='glorot_normal', activation='sigmoid')(encoded)
-        decoded = Dense_tied(n_feature, init='glorot_normal', activation='sigmoid', tied_to=encoded_layer)(encoded)
+        decoded = Dense_tied(n_feature, activation='sigmoid', tied_to=encoded_layer)(encoded)
         # decoded = Dense_tied(n_feature, init='glorot_normal', tied_to=encoded_layer)(encoded)
         # decoded = BatchNormalization((self.dim,))(decoded)
         # decoded = Activation('sigmoid')(decoded)
 
         # this model maps an input to its reconstruction
-        self.autoencoder = Model(input=input_layer, output=decoded)
+        self.autoencoder = Model(outputs=decoded, inputs=input_layer)
 
 
         # this model maps an input to its encoded representation
-        self.encoder = Model(input=input_layer, output=encoded)
+        self.encoder = Model(outputs=encoded, inputs=input_layer)
 
         # create a placeholder for an encoded (32-dimensional) input
         encoded_input = Input(shape=(self.dim,))
         # retrieve the last layer of the autoencoder model
         decoder_layer = self.autoencoder.layers[-1]
         # create the decoder model
-        self.decoder = Model(input=encoded_input, output=decoder_layer(encoded_input))
+        self.decoder = Model(outputs=decoder_layer(encoded_input), inputs=encoded_input)
 
         optimizer = Adadelta(lr=1.5)
         # optimizer = Adam()
@@ -145,7 +143,7 @@ class AutoEncoder(object):
         self.autoencoder.compile(optimizer=optimizer, loss=weighted_binary_crossentropy(feature_weights)) # kld, binary_crossentropy, mse
         # self.autoencoder.compile(optimizer=optimizer, loss='binary_crossentropy') # kld, binary_crossentropy, mse
         self.autoencoder.fit(train_X[0], train_X[1],
-                        nb_epoch=self.nb_epoch,
+                        epochs=self.nb_epoch,
                         batch_size=self.batch_size,
                         shuffle=True,
                         validation_data=(val_X[0], val_X[1]),

@@ -42,10 +42,10 @@ class VarAutoEncoder(object):
 
     def build(self, weights_file=None):
         input_layer = Input(shape=(self.input_size,))
-        hidden_layer1 = Dense(self.intermediate_dim, init='glorot_normal', activation='sigmoid')
+        hidden_layer1 = Dense(self.intermediate_dim, kernel_initializer='glorot_normal', activation='sigmoid')
         h1 = hidden_layer1(input_layer)
-        self.z_mean = Dense(self.latent_dim, init='glorot_normal')(h1)
-        self.z_log_var = Dense(self.latent_dim, init='glorot_normal')(h1)
+        self.z_mean = Dense(self.latent_dim, kernel_initializer='glorot_normal')(h1)
+        self.z_log_var = Dense(self.latent_dim, kernel_initializer='glorot_normal')(h1)
 
         if self.comp_topk:
             print 'add k-competitive layer'
@@ -55,20 +55,20 @@ class VarAutoEncoder(object):
         latent_layer = Lambda(self.sampling, output_shape=(self.latent_dim,))([self.z_mean, self.z_log_var])
 
         # we instantiate these layers separately so as to reuse them later
-        decoder_h = Dense(self.intermediate_dim, init='glorot_normal', activation='sigmoid')
+        decoder_h = Dense(self.intermediate_dim, kernel_initializer='glorot_normal', activation='sigmoid')
         h_decoded = decoder_h(latent_layer)
-        decoder_mean = Dense_tied(self.input_size, init='glorot_normal', activation='sigmoid', tied_to=hidden_layer1)
+        decoder_mean = Dense_tied(self.input_size, activation='sigmoid', tied_to=hidden_layer1)
         x_decoded_mean = decoder_mean(h_decoded)
 
-        self.vae = Model(input_layer, x_decoded_mean)
+        self.vae = Model(outputs=x_decoded_mean, inputs=input_layer)
         # build a model to project inputs on the latent space
-        self.encoder = Model(input_layer, self.z_mean)
+        self.encoder = Model(outpus=self.z_mean, inputs=input_layer)
 
         # build a digit generator that can sample from the learned distribution
         decoder_input = Input(shape=(self.latent_dim,))
         _h_decoded = decoder_h(decoder_input)
         _x_decoded_mean = decoder_mean(_h_decoded)
-        self.decoder = Model(decoder_input, _x_decoded_mean)
+        self.decoder = Model(outputs=_x_decoded_mean, inputs=decoder_input)
 
         if not weights_file is None:
             self.vae.load_weights(weights_file, by_name=True)
@@ -81,7 +81,7 @@ class VarAutoEncoder(object):
 
         self.vae.fit(train_X[0], train_X[1],
                 shuffle=True,
-                nb_epoch=nb_epoch,
+                epochs=nb_epoch,
                 batch_size=batch_size,
                 validation_data=(val_X[0], val_X[1]),
                 callbacks=[ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.01),

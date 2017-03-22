@@ -240,21 +240,22 @@ class Dense_tied(Dense):
     """
     A fully connected layer with tied weights.
     """
-    def __init__(self, output_dim, init='glorot_uniform',
-                 activation=None, weights=None,
-                 W_regularizer=None, b_regularizer=None,
+    def __init__(self, units,
+                 activation=None, use_bias=True,
+                 bias_initializer='zeros',
+                 kernel_regularizer=None, bias_regularizer=None,
                  activity_regularizer=None,
-                 W_constraint=None, b_constraint=None,
-                 bias=True, input_dim=None,
+                 kernel_constraint=None, bias_constraint=None,
                  tied_to=None, **kwargs):
         self.tied_to = tied_to
 
-        super(Dense_tied, self).__init__(output_dim=output_dim, init=init,
-                 activation=activation, weights=weights,
-                 W_regularizer=W_regularizer, b_regularizer=b_regularizer,
+        super(Dense_tied, self).__init__(units=units,
+                 activation=activation, use_bias=use_bias,
+                 bias_initializer=bias_initializer,
+                 kernel_regularizer=kernel_regularizer, bias_regularizer=bias_regularizer,
                  activity_regularizer=activity_regularizer,
-                 W_constraint=W_constraint, b_constraint=b_constraint,
-                 bias=bias, input_dim=input_dim, **kwargs)
+                 kernel_constraint=kernel_constraint, bias_constraint=bias_constraint,
+                 **kwargs)
 
     def build(self, input_shape):
         super(Dense_tied, self).build(input_shape)  # be sure you call this somewhere!
