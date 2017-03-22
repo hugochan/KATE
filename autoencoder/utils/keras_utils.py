@@ -10,7 +10,7 @@ from keras.callbacks import Callback
 import keras.backend as K
 from keras.engine import Layer
 import tensorflow as tf
-from keras import initializations
+from keras import initializers
 
 
 def contractive_loss(model, lam=1e-4):
@@ -70,7 +70,7 @@ class KCompetitive(Layer):
                 that the layer itself is also trainable).
             regularizer: An optional Regularizer instance.
         '''
-        initializer = initializations.get(initializer)
+        initializer = initializers.get(initializer)
         weight = initializer(shape, name=name)
         if regularizer is not None:
             self.add_loss(regularizer(weight))
@@ -111,10 +111,10 @@ class KCompetitive(Layer):
         values, indices = tf.nn.top_k(x, topk) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
 
         # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
-        my_range = tf.expand_dims(tf.range(0, tf.shape(indices)[0]), 1)  # will be [[0], [1]]
+        my_range = tf.expand_dims(tf.range(0, K.shape(indices)[0]), 1)  # will be [[0], [1]]
         my_range_repeated = tf.tile(my_range, [1, topk])  # will be [[0, 0], [1, 1]]
 
-        full_indices = tf.concat(2, [tf.expand_dims(my_range_repeated, 2), tf.expand_dims(indices, 2)])  # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
+        full_indices = tf.stack([my_range_repeated, indices], axis=2) # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
         full_indices = tf.reshape(full_indices, [-1, 2])
 
         to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
@@ -141,7 +141,7 @@ class KCompetitive(Layer):
         # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
         my_range = tf.expand_dims(tf.range(0, tf.shape(indices)[0]), 1)  # will be [[0], [1]]
         my_range_repeated = tf.tile(my_range, [1, topk / 2])  # will be [[0, 0], [1, 1]]
-        full_indices = tf.concat(2, [tf.expand_dims(my_range_repeated, 2), tf.expand_dims(indices, 2)])  # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
+        full_indices = tf.stack([my_range_repeated, indices], axis=2) # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
         full_indices = tf.reshape(full_indices, [-1, 2])
         P_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
 
@@ -149,7 +149,7 @@ class KCompetitive(Layer):
         values2, indices2 = tf.nn.top_k(-N, topk - topk / 2)
         my_range = tf.expand_dims(tf.range(0, tf.shape(indices2)[0]), 1)
         my_range_repeated = tf.tile(my_range, [1, topk - topk / 2])
-        full_indices2 = tf.concat(2, [tf.expand_dims(my_range_repeated, 2), tf.expand_dims(indices2, 2)])  # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
+        full_indices2 = tf.stack([my_range_repeated, indices2], axis=2)
         full_indices2 = tf.reshape(full_indices2, [-1, 2])
         N_reset = tf.sparse_to_dense(full_indices2, tf.shape(x), tf.reshape(values2, [-1]), default_value=0., validate_indices=False)
 
@@ -189,7 +189,7 @@ class KCompetitive(Layer):
         # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
         my_range = tf.expand_dims(tf.range(0, tf.shape(indices)[0]), 1)  # will be [[0], [1]]
         my_range_repeated = tf.tile(my_range, [1, topk])  # will be [[0, 0], [1, 1]]
-        full_indices = tf.concat(2, [tf.expand_dims(my_range_repeated, 2), tf.expand_dims(indices, 2)])  # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
+        full_indices = tf.stack([my_range_repeated, indices], axis=2) # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
         full_indices = tf.reshape(full_indices, [-1, 2])
         x_topk_mask = tf.sparse_to_dense(full_indices, tf.shape(x), tf.ones([tf.shape(full_indices)[0], ], tf.float32), default_value=0., validate_indices=False)
 
@@ -226,7 +226,7 @@ class KCompetitive(Layer):
         my_range = tf.expand_dims(tf.range(0, tf.shape(indices)[0]), 1)  # will be [[0], [1]]
         my_range_repeated = tf.tile(my_range, [1, k])  # will be [[0, 0], [1, 1]]
 
-        full_indices = tf.concat(2, [tf.expand_dims(my_range_repeated, 2), tf.expand_dims(indices, 2)])  # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
+        full_indices = tf.stack([my_range_repeated, indices], axis=2) # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
         full_indices = tf.reshape(full_indices, [-1, 2])
 
         to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
@@ -258,16 +258,16 @@ class Dense_tied(Dense):
 
     def build(self, input_shape):
         super(Dense_tied, self).build(input_shape)  # be sure you call this somewhere!
-        if self.W in self.trainable_weights:
-            self.trainable_weights.remove(self.W)
+        if self.kernel in self.trainable_weights:
+            self.trainable_weights.remove(self.kernel)
 
 
     def call(self, x, mask=None):
         # Use tied weights
-        self.W = K.transpose(self.tied_to.W)
-        output = K.dot(x, self.W)
-        if self.bias:
-            output += self.b
+        self.kernel = K.transpose(self.tied_to.kernel)
+        output = K.dot(x, self.kernel)
+        if self.use_bias:
+            output += self.bias
         return self.activation(output)
 
 # class MyModelCheckpoint(Callback):
