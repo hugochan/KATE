@@ -11,6 +11,7 @@ import keras.backend as K
 from keras.engine import Layer
 import tensorflow as tf
 from keras import initializers
+import warnings
 
 
 def contractive_loss(model, lam=1e-4):
@@ -53,85 +54,56 @@ class KCompetitive(Layer):
     '''
     def __init__(self, topk, **kwargs):
         self.topk = topk
+        self.ctype = ctype
         self.uses_learning_phase = True
         self.supports_masking = True
         super(KCompetitive, self).__init__(**kwargs)
 
-    def add_weight(self, shape, initializer, name=None,
-                   trainable=True,
-                   regularizer=None,
-                   constraint=None):
-        '''Adds a weight variable to the layer.
-        # Arguments:
-            shape: The shape tuple of the weight.
-            initializer: An Initializer instance (callable).
-            trainable: A boolean, whether the weight should
-                be trained via backprop or not (assuming
-                that the layer itself is also trainable).
-            regularizer: An optional Regularizer instance.
-        '''
-        initializer = initializers.get(initializer)
-        weight = initializer(shape, name=name)
-        if regularizer is not None:
-            self.add_loss(regularizer(weight))
-        if constraint is not None:
-            self.constraints[weight] = constraint
-        if trainable:
-            self._trainable_weights.append(weight)
+    def call(self, x):
+        if self.ctype == 'ksparse':
+            return K.in_train_phase(self.kSparse(x, self.topk), x)
+        elif self.ctype == 'kcomp':
+            return K.in_train_phase(self.k_comp_tanh(x, self.topk), x)
         else:
-            self._non_trainable_weights.append(weight)
-        return weight
-
-    # def build(self, input_shape):
-    #     # assert len(input_shape) >= 2
-    #     # input_dim = input_shape[-1]
-    #     # self.input_dim = input_dim
-    #     # import pdb;pdb.set_trace()
-    #     self.alpha = self.add_weight(( ), initializer='one')
-    #     self.built = True
-
-    def call(self, x, mask=None):
-        # res = K.in_train_phase(self.kSparse(x, self.topk), x)
-        res = K.in_train_phase(self.k_comp_tanh(x, self.topk), x)
-        # res = K.in_train_phase(self.k_comp_tanh_strict(x, self.topk), x)
-        return res
+            warnings.warn("Unknown ctype, using no competition.")
+            return x
 
     def get_config(self):
-        config = {'topk': self.topk}
+        config = {'topk': self.topk, 'ctype': self.ctype}
         base_config = super(KCompetitive, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
-    def k_comp_sigm(self, x, topk):
-        print 'run k_comp_sigm'
-        dim = int(x.get_shape()[1])
-        if topk > dim:
-            print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
-            topk = dim
+    # def k_comp_sigm(self, x, topk):
+    #     print 'run k_comp_sigm'
+    #     dim = int(x.get_shape()[1])
+    #     if topk > dim:
+    #         warnings.warn('topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim))
+    #         topk = dim
 
-        values, indices = tf.nn.top_k(x, topk) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
+    #     values, indices = tf.nn.top_k(x, topk) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
 
-        # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
-        my_range = tf.expand_dims(tf.range(0, K.shape(indices)[0]), 1)  # will be [[0], [1]]
-        my_range_repeated = tf.tile(my_range, [1, topk])  # will be [[0, 0], [1, 1]]
+    #     # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
+    #     my_range = tf.expand_dims(tf.range(0, K.shape(indices)[0]), 1)  # will be [[0], [1]]
+    #     my_range_repeated = tf.tile(my_range, [1, topk])  # will be [[0, 0], [1, 1]]
 
-        full_indices = tf.stack([my_range_repeated, indices], axis=2) # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
-        full_indices = tf.reshape(full_indices, [-1, 2])
+    #     full_indices = tf.stack([my_range_repeated, indices], axis=2) # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
+    #     full_indices = tf.reshape(full_indices, [-1, 2])
 
-        to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
+    #     to_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(values, [-1]), default_value=0., validate_indices=False)
 
-        batch_size = tf.to_float(tf.shape(x)[0])
-        tmp = 1 * batch_size * tf.reduce_sum(x - to_reset, 1, keep_dims=True) / topk
+    #     batch_size = tf.to_float(tf.shape(x)[0])
+    #     tmp = 1 * batch_size * tf.reduce_sum(x - to_reset, 1, keep_dims=True) / topk
 
-        res = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, tmp), [-1]), default_value=0., validate_indices=False)
+    #     res = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, tmp), [-1]), default_value=0., validate_indices=False)
 
-        return res
+    #     return res
 
     def k_comp_tanh(self, x, topk):
         print 'run k_comp_tanh'
         dim = int(x.get_shape()[1])
         # batch_size = tf.to_float(tf.shape(x)[0])
         if topk > dim:
-            print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
+            warnings.warn('Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim))
             topk = dim
 
         P = (x + tf.abs(x)) / 2
@@ -168,55 +140,54 @@ class KCompetitive(Layer):
         P_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, P_tmp), [-1]), default_value=0., validate_indices=False)
         N_reset = tf.sparse_to_dense(full_indices2, tf.shape(x), tf.reshape(tf.add(values2, N_tmp), [-1]), default_value=0., validate_indices=False)
 
-
         res = P_reset - N_reset
 
         return res
 
-    def k_comp_tanh_strict(self, x, topk):
-        print 'run k_comp_tanh_strict'
-        dim = int(x.get_shape()[1])
-        # batch_size = tf.to_float(tf.shape(x)[0])
-        if topk > dim:
-            print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
-            topk = dim
+    # def k_comp_tanh_strict(self, x, topk):
+    #     print 'run k_comp_tanh_strict'
+    #     dim = int(x.get_shape()[1])
+    #     # batch_size = tf.to_float(tf.shape(x)[0])
+    #     if topk > dim:
+    #         warnings.warn('Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim))
+    #         topk = dim
 
-        x_abs = tf.abs(x)
-        P = (x + x_abs) / 2 # positive part of x
-        N = (x - x_abs) / 2 # negative part of x
+    #     x_abs = tf.abs(x)
+    #     P = (x + x_abs) / 2 # positive part of x
+    #     N = (x - x_abs) / 2 # negative part of x
 
-        values, indices = tf.nn.top_k(x_abs, topk) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
-        # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
-        my_range = tf.expand_dims(tf.range(0, tf.shape(indices)[0]), 1)  # will be [[0], [1]]
-        my_range_repeated = tf.tile(my_range, [1, topk])  # will be [[0, 0], [1, 1]]
-        full_indices = tf.stack([my_range_repeated, indices], axis=2) # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
-        full_indices = tf.reshape(full_indices, [-1, 2])
-        x_topk_mask = tf.sparse_to_dense(full_indices, tf.shape(x), tf.ones([tf.shape(full_indices)[0], ], tf.float32), default_value=0., validate_indices=False)
+    #     values, indices = tf.nn.top_k(x_abs, topk) # indices will be [[0, 1], [2, 1]], values will be [[6., 2.], [5., 4.]]
+    #     # We need to create full indices like [[0, 0], [0, 1], [1, 2], [1, 1]]
+    #     my_range = tf.expand_dims(tf.range(0, tf.shape(indices)[0]), 1)  # will be [[0], [1]]
+    #     my_range_repeated = tf.tile(my_range, [1, topk])  # will be [[0, 0], [1, 1]]
+    #     full_indices = tf.stack([my_range_repeated, indices], axis=2) # change shapes to [N, k, 1] and [N, k, 1], to concatenate into [N, k, 2]
+    #     full_indices = tf.reshape(full_indices, [-1, 2])
+    #     x_topk_mask = tf.sparse_to_dense(full_indices, tf.shape(x), tf.ones([tf.shape(full_indices)[0], ], tf.float32), default_value=0., validate_indices=False)
 
-        P_select = tf.multiply(P, x_topk_mask)
-        N_select = tf.multiply(-N, x_topk_mask)
+    #     P_select = tf.multiply(P, x_topk_mask)
+    #     N_select = tf.multiply(-N, x_topk_mask)
 
-        zero = tf.constant(0., dtype=tf.float32)
-        P_indices = tf.cast(tf.where(tf.not_equal(P_select, zero)), tf.int32)
-        N_indices = tf.cast(tf.where(tf.not_equal(N_select, zero)), tf.int32)
-        P_mask = tf.sparse_to_dense(P_indices, tf.shape(x), tf.ones([tf.shape(P_indices)[0], ], tf.float32), default_value=0., validate_indices=False)
-        N_mask = tf.sparse_to_dense(N_indices, tf.shape(x), tf.ones([tf.shape(N_indices)[0], ], tf.float32), default_value=0., validate_indices=False)
+    #     zero = tf.constant(0., dtype=tf.float32)
+    #     P_indices = tf.cast(tf.where(tf.not_equal(P_select, zero)), tf.int32)
+    #     N_indices = tf.cast(tf.where(tf.not_equal(N_select, zero)), tf.int32)
+    #     P_mask = tf.sparse_to_dense(P_indices, tf.shape(x), tf.ones([tf.shape(P_indices)[0], ], tf.float32), default_value=0., validate_indices=False)
+    #     N_mask = tf.sparse_to_dense(N_indices, tf.shape(x), tf.ones([tf.shape(N_indices)[0], ], tf.float32), default_value=0., validate_indices=False)
 
-        alpha = 10.
-        P_complement = alpha * tf.reduce_sum(P - P_select, 1, keep_dims=True)# / tf.cast(tf.shape(P_indices)[0], tf.float32) # 6.26
-        N_complement = alpha * tf.reduce_sum(-N - N_select, 1, keep_dims=True)# / tf.cast(tf.shape(N_indices)[0], tf.float32)
+    #     alpha = 10.
+    #     P_complement = alpha * tf.reduce_sum(P - P_select, 1, keep_dims=True)# / tf.cast(tf.shape(P_indices)[0], tf.float32) # 6.26
+    #     N_complement = alpha * tf.reduce_sum(-N - N_select, 1, keep_dims=True)# / tf.cast(tf.shape(N_indices)[0], tf.float32)
 
-        P_reset = tf.multiply(tf.add(P_select, P_complement), P_mask)
-        N_reset = tf.multiply(tf.add(N_select, N_complement), N_mask)
-        res = P_reset - N_reset
+    #     P_reset = tf.multiply(tf.add(P_select, P_complement), P_mask)
+    #     N_reset = tf.multiply(tf.add(N_select, N_complement), N_mask)
+    #     res = P_reset - N_reset
 
-        return res
+    #     return res
 
     def kSparse(self, x, topk):
         print 'run regular k-sparse'
         dim = int(x.get_shape()[1])
         if topk > dim:
-            print 'Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim)
+            warnings.warn('Warning: topk should not be larger than dim: %s, found: %s, using %s' % (dim, topk, dim))
             topk = dim
 
         k = dim - topk
