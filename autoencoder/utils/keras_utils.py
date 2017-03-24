@@ -52,7 +52,7 @@ class KCompetitive(Layer):
 
     # Arguments
     '''
-    def __init__(self, topk, **kwargs):
+    def __init__(self, topk, ctype, **kwargs):
         self.topk = topk
         self.ctype = ctype
         self.uses_learning_phase = True
