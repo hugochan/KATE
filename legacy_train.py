@@ -46,6 +46,15 @@ def train(args):
     X_val = X_docs[val_idx]
     del X_docs
 
+    # np.random.shuffle(X_docs)
+    # n_val = args.n_val
+    ## X_train = np.r_[X_docs[:-n_val]]
+    ## X_val = np.r_[X_docs[-n_val:]]
+    # X_train = np.r_[X_docs[:-n_val]]
+    # del X_docs[:-n_val]
+    # X_val = np.r_[X_docs]
+    # del X_docs
+
     if args.noise:
         # X_train_noisy = X_docs_noisy[:-n_val]
         # X_val_noisy = X_docs_noisy[-n_val:]
@@ -58,15 +67,18 @@ def train(args):
 
     start = timeit.default_timer()
 
-    ae = AutoEncoder(n_vocab, args.n_dim, comp_topk=args.comp_topk, ctype=args.ctype)
+    ae = AutoEncoder(n_vocab, args.n_dim, comp_topk=args.comp_topk, weights_file=args.load_weights)
     ae.fit([X_train_noisy, X_train], [X_val_noisy, X_val], nb_epoch=args.n_epoch, \
-            batch_size=args.batch_size, contractive=args.contractive)
+            batch_size=args.batch_size, feature_weights=None, contractive=args.contractive)
 
     print 'runtime: %ss' % (timeit.default_timer() - start)
 
     if args.save_model:
-        save_ae_model(ae, args.save_model)
-        print 'Saved model file to %s' % args.save_model
+        arch_file  = args.save_model + '.arch'
+        weights_file  = args.save_model + '.weights'
+        save_model(ae, arch_file, weights_file)
+        print 'Saved model arch and weights file to %s and %s, respectively.' \
+            % (arch_file, weights_file)
 
     if args.output:
         train_doc_codes = ae.encoder.predict(X_train)
@@ -76,6 +88,8 @@ def train(args):
         dump_json(dict(zip(doc_keys[val_idx].tolist(), val_doc_codes.tolist())), args.output + '.val')
         print 'Saved doc codes file to %s and %s' % (args.output, args.output + '.val')
 
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', type=str, required=True, help='path to the input corpus file')
@@ -84,8 +98,7 @@ def main():
     parser.add_argument('-bs', '--batch_size', type=int, default=100, help='batch size (default 100)')
     parser.add_argument('-nv', '--n_val', type=int, default=1000, help='size of validation set (default 1000)')
     parser.add_argument('-ck', '--comp_topk', type=int, help='competitive topk')
-    parser.add_argument('-ctype', '--ctype', type=str, help='competitive type (kcomp, ksparse, gated_comp)')
-    parser.add_argument('-lm', '--load_model', type=str, help='path to the pretrained model file for retraining')
+    parser.add_argument('-lw', '--load_weights', type=str, help='path to the pretrained weights file')
     parser.add_argument('-sm', '--save_model', type=str, default='model', help='path to the output model')
     parser.add_argument('-contr', '--contractive', type=float, help='contractive lambda')
     parser.add_argument('--noise', type=str, help='noise type: gs for Gaussian noise, sp for salt-and-pepper or mn for masking noise')
