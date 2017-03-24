@@ -59,11 +59,15 @@ def main():
         Y_val = encoder.transform(Y_val)
         Y_test = encoder.transform(Y_test)
     else:
+        Y = Y_train + Y_val + Y_test
+        n_train = len(Y_train)
+        n_val = len(Y_val)
+        n_test = len(Y_test)
         encoder = LabelEncoder()
-        encoder.fit(Y_train + Y_val + Y_test)
-        Y_train = np_utils.to_categorical(encoder.transform(Y_train))
-        Y_val = np_utils.to_categorical(encoder.transform(Y_val))
-        Y_test = np_utils.to_categorical(encoder.transform(Y_test))
+        Y = np_utils.to_categorical(encoder.fit_transform(Y))
+        Y_train = Y[:n_train]
+        Y_val = Y[n_train:n_train + n_val]
+        Y_test = Y[-n_test:]
 
     seed = 7
     print 'train: %s, val: %s, test: %s' % (X_train.shape[0], X_val.shape[0], X_test.shape[0])

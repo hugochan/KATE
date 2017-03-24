@@ -52,10 +52,13 @@ def main():
         Y_train = encoder.transform(Y_train)
         Y_test = encoder.transform(Y_test)
     else:
+        Y = Y_train + Y_test
+        n_train = len(Y_train)
+        n_test = len(Y_test)
         encoder = LabelEncoder()
-        encoder.fit(Y_train + Y_test)
-        Y_train = np_utils.to_categorical(encoder.transform(Y_train))
-        Y_test = np_utils.to_categorical(encoder.transform(Y_test))
+        Y = np_utils.to_categorical(encoder.fit_transform(Y))
+        Y_train = Y[:n_train]
+        Y_test = Y[-n_test:]
 
     seed = 7
     np.random.seed(seed)
