@@ -5,8 +5,6 @@ Created on Nov, 2016
 
 '''
 from __future__ import absolute_import
-from os import path
-import numpy as np
 from keras.layers import Input, Dense
 from keras.models import Model
 from keras.optimizers import Adadelta

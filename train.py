@@ -11,7 +11,7 @@ from os import path
 import numpy as np
 
 from autoencoder.core.ae import AutoEncoder, load_ae_model, save_ae_model
-from autoencoder.preprocessing.preprocessing import load_corpus, doc2vec, vocab_weights
+from autoencoder.preprocessing.preprocessing import load_corpus, doc2vec
 from autoencoder.utils.op_utils import vecnorm, add_gaussian_noise, add_masking_noise, add_salt_pepper_noise
 from autoencoder.utils.io_utils import dump_json
 

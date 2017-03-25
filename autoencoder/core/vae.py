@@ -9,9 +9,7 @@ from __future__ import absolute_import
 from keras.layers import Input, Dense, Lambda
 from keras.models import Model
 from keras.optimizers import Adadelta, Adam
-from keras.models import load_model
-from keras import regularizers
-from keras import objectives
+# from keras.models import load_model as load_keras_model
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.layers.advanced_activations import PReLU
 import keras.backend as K
