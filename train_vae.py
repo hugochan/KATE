@@ -40,28 +40,24 @@ def train(args):
 
     start = timeit.default_timer()
 
-    vae = VarAutoEncoder(n_vocab, args.n_intermediate_dim, args.n_dim, comp_topk=args.comp_topk, weights_file=args.load_weights)
+    vae = VarAutoEncoder(n_vocab, args.n_dim, comp_topk=args.comp_topk, ctype=args.ctype)
     vae.fit([X_train, X_train], [X_val, X_val], nb_epoch=args.n_epoch, batch_size=args.batch_size)
 
     print 'runtime: %ss' % (timeit.default_timer() - start)
 
     if args.save_model:
-        arch_file  = args.save_model + '.arch'
-        weights_file  = args.save_model + '.weights'
-        save_vae_model(vae, arch_file, weights_file)
-    print 'Saved model arch and weights file to %s and %s, respectively.' \
-            % (arch_file, weights_file)
+        save_vae_model(vae, args.save_model)
+        print 'Saved model file to %s' % args.save_model
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', type=str, required=True, help='path to the input corpus file')
-    parser.add_argument('-nid', '--n_intermediate_dim', type=int, default=512, help='num of intermediate dimensions (default 512)')
-    parser.add_argument('-ck', '--comp_topk', type=int, help='competitive topk')
-    parser.add_argument('-nd', '--n_dim', type=int, default=128, help='num of dimensions (default 128)')
+    parser.add_argument('-nd', '--n_dim', nargs='*', type=int, help='num of dimensions')
     parser.add_argument('-ne', '--n_epoch', type=int, default=100, help='num of epoches (default 100)')
     parser.add_argument('-bs', '--batch_size', type=int, default=100, help='batch size (default 100)')
     parser.add_argument('-nv', '--n_val', type=int, default=1000, help='size of validation set (default 1000)')
-    parser.add_argument('-lw', '--load_weights', type=str, help='path to the pretrained weights file')
+    parser.add_argument('-ck', '--comp_topk', nargs='*', type=int, help='competitive topk')
+    parser.add_argument('-ctype', '--ctype', type=str, help='competitive type (kcomp, ksparse, gated_comp)')
     parser.add_argument('-sm', '--save_model', type=str, default='model', help='path to the output model')
     args = parser.parse_args()
 
