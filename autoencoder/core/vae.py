@@ -9,12 +9,12 @@ from __future__ import absolute_import
 from keras.layers import Input, Dense, Lambda
 from keras.models import Model
 from keras.optimizers import Adadelta, Adam
-# from keras.models import load_model as load_keras_model
+from keras.models import load_model as load_keras_model
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.layers.advanced_activations import PReLU
 import keras.backend as K
 
-from ..utils.keras_utils import Dense_tied, KCompetitive
+from ..utils.keras_utils import Dense_tied, KCompetitive, KCompetitive
 from ..utils.io_utils import dump_json, load_json
 
 
@@ -29,48 +29,54 @@ class VarAutoEncoder(object):
 
         """
 
-    def __init__(self, input_size, intermediate_dim, dim, comp_topk=None, weights_file=None, epsilon_std=1.0):
+    def __init__(self, input_size, dim, comp_topk=None, ctype=None, epsilon_std=1.0):
         self.input_size = input_size
-        self.intermediate_dim = intermediate_dim
-        self.latent_dim = dim
-        self.epsilon_std = epsilon_std
+        self.dim = dim
         self.comp_topk = comp_topk
+        self.ctype = ctype
+        self.epsilon_std = epsilon_std
 
-        self.build(weights_file)
+        self.build()
 
-    def build(self, weights_file=None):
+    def build(self):
+        act = 'tanh'
         input_layer = Input(shape=(self.input_size,))
-        hidden_layer1 = Dense(self.intermediate_dim, kernel_initializer='glorot_normal', activation='sigmoid')
+        hidden_layer1 = Dense(self.dim[0], kernel_initializer='glorot_normal', activation=act)
         h1 = hidden_layer1(input_layer)
-        self.z_mean = Dense(self.latent_dim, kernel_initializer='glorot_normal')(h1)
-        self.z_log_var = Dense(self.latent_dim, kernel_initializer='glorot_normal')(h1)
 
-        if self.comp_topk:
+        if self.comp_topk and self.comp_topk[0] != -1:
             print 'add k-competitive layer'
-            self.z_mean = KCompetitive(self.comp_topk)(self.z_mean)
+            h1 = KCompetitive(self.comp_topk[0], self.ctype)(h1)
+            # print 'add competitive layer'
+            # h1 = Competitive()(h1)
+
+        self.z_mean = Dense(self.dim[1], kernel_initializer='glorot_normal')(h1)
+        self.z_log_var = Dense(self.dim[1], kernel_initializer='glorot_normal')(h1)
+
+        if self.comp_topk and self.comp_topk[1] != -1:
+            print 'add k-competitive layer'
+            self.z_mean = KCompetitive(self.comp_topk[1], self.ctype)(self.z_mean)
+            # print 'add competitive layer'
+            # self.z_mean = Competitive()(self.z_mean)
 
         # note that "output_shape" isn't necessary with the TensorFlow backend
-        latent_layer = Lambda(self.sampling, output_shape=(self.latent_dim,))([self.z_mean, self.z_log_var])
+        encoded = Lambda(self.sampling, output_shape=(self.dim[1],))([self.z_mean, self.z_log_var])
 
         # we instantiate these layers separately so as to reuse them later
-        decoder_h = Dense(self.intermediate_dim, kernel_initializer='glorot_normal', activation='sigmoid')
-        h_decoded = decoder_h(latent_layer)
+        decoder_h = Dense(self.dim[0], kernel_initializer='glorot_normal', activation=act)
+        h_decoded = decoder_h(encoded)
         decoder_mean = Dense_tied(self.input_size, activation='sigmoid', tied_to=hidden_layer1)
         x_decoded_mean = decoder_mean(h_decoded)
 
         self.vae = Model(outputs=x_decoded_mean, inputs=input_layer)
         # build a model to project inputs on the latent space
-        self.encoder = Model(outpus=self.z_mean, inputs=input_layer)
+        self.encoder = Model(outputs=self.z_mean, inputs=input_layer)
 
         # build a digit generator that can sample from the learned distribution
-        decoder_input = Input(shape=(self.latent_dim,))
+        decoder_input = Input(shape=(self.dim[1],))
         _h_decoded = decoder_h(decoder_input)
         _x_decoded_mean = decoder_mean(_h_decoded)
         self.decoder = Model(outputs=_x_decoded_mean, inputs=decoder_input)
-
-        if not weights_file is None:
-            self.vae.load_weights(weights_file, by_name=True)
-            print 'Loaded pretrained weights'
 
     def fit(self, train_X, val_X, nb_epoch=50, batch_size=100):
         print 'Training variational autoencoder'
@@ -112,21 +118,13 @@ class VarAutoEncoder(object):
 
     def sampling(self, args):
         z_mean, z_log_var = args
-        epsilon = K.random_normal(shape=(K.shape(z_mean)[0], self.latent_dim), mean=0.,
-                                  std=self.epsilon_std)
+        epsilon = K.random_normal(shape=(K.shape(z_mean)[0], self.dim[1]), mean=0.,\
+                                  stddev=self.epsilon_std)
 
         return z_mean + K.exp(z_log_var / 2) * epsilon
 
-def save_vae_model(model, arch_file, weights_file):
-    arch = {'input_size': model.input_size,
-            'intermediate_dim': model.intermediate_dim,
-            'dim': model.latent_dim,
-            'comp_topk': model.comp_topk}
-    model.vae.save_weights(weights_file)
-    dump_json(arch, arch_file)
+def save_vae_model(model, model_file):
+    model.encoder.save(model_file)
 
-def load_vae_model(model, arch_file, weights_file):
-    arch = load_json(arch_file)
-    ae = model(arch['input_size'], arch['intermediate_dim'], arch['dim'], comp_topk=arch['comp_topk'], weights_file=weights_file)
-
-    return ae
+def load_vae_model(model_file):
+    return load_keras_model(model_file, custom_objects={"KCompetitive": KCompetitive})
