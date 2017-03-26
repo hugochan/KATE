@@ -14,7 +14,7 @@ from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.layers.advanced_activations import PReLU
 import keras.backend as K
 
-from ..utils.keras_utils import Dense_tied, KCompetitive
+from ..utils.keras_utils import Dense_tied, KCompetitive, KCompetitive
 from ..utils.io_utils import dump_json, load_json
 
 
