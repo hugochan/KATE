@@ -9,18 +9,18 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, confusion_matrix, classification_report
 
 def softmax_network(input_size, n_class):
     model = Sequential()
-    model.add(Dense(n_class, input_dim=input_size, init='glorot_normal', activation='softmax'))
+    model.add(Dense(n_class, activation='softmax', kernel_initializer='glorot_normal', input_dim=input_size))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     return model
 
 def sigmoid_network(input_size, n_class):
     model = Sequential()
-    model.add(Dense(n_class, input_dim=input_size, init='glorot_normal', activation='sigmoid'))
+    model.add(Dense(n_class, activation='sigmoid', kernel_initializer='glorot_normal', input_dim=input_size))
     model.compile(loss='categorical_crossentropy', optimizer='adam')
 
     return model
@@ -28,7 +28,7 @@ def sigmoid_network(input_size, n_class):
 def multiclass_classifier(X_train, Y_train, X_val, Y_val, X_test, Y_test, nb_epoch=200, batch_size=10, seed=7):
     clf = softmax_network(X_train.shape[1], Y_train.shape[1])
     clf.fit(X_train, Y_train,
-                        nb_epoch=nb_epoch,
+                        epochs=nb_epoch,
                         batch_size=batch_size,
                         shuffle=True,
                         validation_data=(X_val, Y_val),
@@ -38,7 +38,11 @@ def multiclass_classifier(X_train, Y_train, X_val, Y_val, X_test, Y_test, nb_epo
                         ]
                         )
     acc = clf.test_on_batch(X_test, Y_test)[1]
-
+    # confusion matrix and precision-recall
+    true = np.argmax(Y_test,axis=1)
+    pred = np.argmax(clf.predict(X_test), axis=1)
+    print confusion_matrix(true, pred)
+    print classification_report(true, pred)
     return acc
 
 def multilabel_classifier(X_train, Y_train, X_val, Y_val, X_test, Y_test, nb_epoch=200, batch_size=10, seed=7):
