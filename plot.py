@@ -7,7 +7,7 @@ Created on Dec, 2016
 from __future__ import absolute_import
 import argparse
 
-from autoencoder.testing.visualize import visualize_pca_2d, plot_tsne
+from autoencoder.testing.visualize import visualize_pca_2d, visualize_pca_3d, plot_tsne, plot_tsne_3d
 from autoencoder.utils.io_utils import load_json
 
 def main():
@@ -19,23 +19,38 @@ def main():
     args = parser.parse_args()
 
     cmd = args.cmd.lower()
-    classes_to_visual = ["rec.sport.hockey", "comp.graphics", "sci.crypt", \
-                            "soc.religion.christian", "talk.politics.mideast", \
-                            "talk.politics.guns"]
+
+    # classes_to_visual = ["rec.sport.hockey", "comp.graphics", "sci.crypt", \
+    #                         "soc.religion.christian", "talk.politics.mideast", \
+    #                         "talk.politics.guns"]
 
     # classes_to_visual = ['comp.graphics', 'comp.os.ms-windows.misc', 'comp.sys.ibm.pc.hardware',
                         # 'comp.sys.mac.hardware', 'comp.windows.x']
     # classes_to_visual = ['alt.atheism', 'comp.graphics', 'comp.os.ms-windows.misc', 'comp.sys.ibm.pc.hardware', 'comp.sys.mac.hardware', 'comp.windows.x', 'misc.forsale', 'rec.autos', 'rec.motorcycles', 'rec.sport.baseball', 'rec.sport.hockey', 'sci.crypt', 'sci.electronics', 'sci.med', 'sci.space', 'soc.religion.christian', 'talk.politics.guns', 'talk.politics.mideast', 'talk.politics.misc', 'talk.religion.misc']
 
+    doc_codes = load_json(args.doc_codes_file)
+    doc_labels = load_json(args.doc_labels_file)
+
     # 20news
+    # if cmd == 'pca':
+    #     visualize_pca_2d(doc_codes, doc_labels, classes_to_visual, args.output)
+    # elif cmd == 'tsne':
+    #     plot_tsne(doc_codes, doc_labels, classes_to_visual, args.output)
+
+    # 8k
+    classes_to_visual = ["1", "2", "3", "4", "5", "7", "8"]
+    for k in doc_labels:
+        doc_labels[k] = doc_labels[k].split('.')[0]
+
+    # 10k
+    # classes_to_visual = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
+    # for k in doc_labels:
+    #     doc_labels[k] = ''.join([y for y in list(doc_labels[k]) if y.isdigit()])
+
     if cmd == 'pca':
-        visualize_pca_2d(load_json(args.doc_codes_file), load_json(args.doc_labels_file), classes_to_visual, args.output)
+        visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, args.output)
     elif cmd == 'tsne':
-        plot_tsne(load_json(args.doc_codes_file), load_json(args.doc_labels_file), classes_to_visual, args.output)
-    # # 8k
-    # plot_tsne(load_json(sys.argv[1]), load_json(sys.argv[2]), [0, 1])
-    # plot_tsne(load_json(sys.argv[1]), load_json(sys.argv[2]), ['1143155', '889936', '1362719', '700733', '730708'])
-    # visualize_pca_2d(load_json(sys.argv[1]), load_json(sys.argv[2]), ['2006', '2008', '2010', '2012'])
+        plot_tsne_3d(doc_codes, doc_labels, classes_to_visual, args.output)
 
 if __name__ == '__main__':
     main()
