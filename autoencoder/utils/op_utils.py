@@ -8,6 +8,15 @@ from __future__ import absolute_import
 import numpy as np
 
 
+def calc_ranks(x):
+    """Given a list of items, return a list(in ndarray type) of ranks.
+    """
+    n = len(x)
+    index = list(zip(*sorted(list(enumerate(x)), key=lambda d:d[1], reverse=True))[0])
+    rank = np.zeros(n)
+    rank[index] = range(1, n + 1)
+    return rank
+
 def revdict(d):
     """
     Reverse a dictionary mapping.
