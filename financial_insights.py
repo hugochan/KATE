@@ -26,7 +26,7 @@ def rank_bank_topic(bank_doc_map, doc_topic_dist):
             rank.append(calc_ranks(doc_topic_dist[each_doc]))
         rank = np.r_[rank]
         # compute ranking score
-        bank_topic_ranks[each_bank] = np.sum(1. / rank, axis=0)
+        bank_topic_ranks[each_bank] = np.mean(1. / rank, axis=0)
     return bank_topic_ranks
 
 if __name__ == '__main__':
