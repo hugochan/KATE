@@ -20,7 +20,6 @@ def train(args):
     corpus = load_corpus(args.input)
     n_vocab, docs = len(corpus['vocab']), corpus['docs']
     corpus.clear() # save memory
-
     doc_keys = docs.keys()
     X_docs = []
     for k in doc_keys:
@@ -58,15 +57,11 @@ def train(args):
 
     start = timeit.default_timer()
 
-    ae = AutoEncoder(n_vocab, args.n_dim, comp_topk=args.comp_topk, ctype=args.ctype)
+    ae = AutoEncoder(n_vocab, args.n_dim, comp_topk=args.comp_topk, ctype=args.ctype, save_model=args.save_model)
     ae.fit([X_train_noisy, X_train], [X_val_noisy, X_val], nb_epoch=args.n_epoch, \
             batch_size=args.batch_size, contractive=args.contractive)
 
     print 'runtime: %ss' % (timeit.default_timer() - start)
-
-    if args.save_model:
-        save_ae_model(ae, args.save_model)
-        print 'Saved model file to %s' % args.save_model
 
     if args.output:
         train_doc_codes = ae.encoder.predict(X_train)
