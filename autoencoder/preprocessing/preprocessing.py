@@ -86,7 +86,9 @@ def load_data(corpus_path, recursive=False, stem=True):
     files = get_all_files(corpus_path, recursive)
 
     # word_tokenizer = RegexpTokenizer(r'[a-zA-Z]+') # match only alphabet characters
-    cached_stop_words = init_stopwords()
+    # cached_stop_words = init_stopwords()
+    cached_stop_words = []
+    stem = False
 
     for filename in files:
         try:
@@ -143,19 +145,21 @@ def generate_bow(doc_word_freq, vocab_dict):
 
     return docs
 
-def build_vocab(word_freq, threshold=5, topn=None):
+def build_vocab(word_freq, threshold=5, topn=None, start_idx=0):
     """
     threshold only take effects when topn is None.
+    words are indexed by overall frequency in the dataset.
     """
+    word_freq = sorted(word_freq.iteritems(), key=lambda d:d[1], reverse=True)
     if topn:
-        word_freq = dict(sorted(word_freq.iteritems(), key=lambda d:d[1], reverse=True)[:topn])
-        vocab_dict = dict(zip(word_freq.keys(), range(len(word_freq))))
+        word_freq = zip(*word_freq[:topn])[0]
+        vocab_dict = dict(zip(word_freq, range(start_idx, len(word_freq) + start_idx)))
     else:
-        idx = 0
+        idx = start_idx
         vocab_dict = {}
-        for word, freq in word_freq.iteritems():
+        for word, freq in word_freq:
             if freq < threshold:
-                continue
+                return vocab_dict
             vocab_dict[word] = idx
             idx += 1
     return vocab_dict
@@ -245,6 +249,16 @@ def generate_20news_doc_labels(doc_names, output):
     doc_labels = {}
     for each in doc_names:
        label = each.split('_')[0]
+       doc_labels[each] = label
+
+    dump_json(doc_labels, output)
+
+    return doc_labels
+
+def generate_8k_doc_labels(doc_names, output):
+    doc_labels = {}
+    for each in doc_names:
+       label = each.split('_')[-1].replace('.txt', '')
        doc_labels[each] = label
 
     dump_json(doc_labels, output)
