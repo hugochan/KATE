@@ -11,9 +11,9 @@ import numpy as np
 
 from autoencoder.core.ae import load_ae_model
 from autoencoder.preprocessing.preprocessing import load_corpus, doc2vec
-from autoencoder.utils.op_utils import vecnorm, revdict, unitmatrix #, corrupted_matrix
+from autoencoder.utils.op_utils import vecnorm, revdict, unitmatrix
 from autoencoder.utils.io_utils import dump_json, write_file
-
+from autoencoder.testing.visualize import word_cloud
 
 def calc_pairwise_cosine(model):
     weights = model.get_weights()[0]
@@ -93,17 +93,27 @@ def test(args):
     X_docs = np.r_[X_docs]
 
     ae = load_ae_model(args.load_model)
-
     doc_codes = ae.predict(X_docs)
     dump_json(dict(zip(doc_keys, doc_codes.tolist())), args.output)
     print 'Saved doc codes file to %s' % args.output
 
     if args.save_topics:
-        # topics_strength = get_topics_strength(ae, revdict(vocab), topn=10)
-        # save_topics_strength(topics_strength, args.save_topics)
-        topics = get_topics(ae, revdict(vocab), topn=10)
-        write_file(topics, args.save_topics)
+        topics_strength = get_topics_strength(ae, revdict(vocab), topn=10)
+        save_topics_strength(topics_strength, args.save_topics)
+        # topics = get_topics(ae, revdict(vocab), topn=10)
+        # write_file(topics, args.save_topics)
         print 'Saved topics file to %s' % args.save_topics
+
+    if args.word_clouds:
+        queries = ['interest', 'trust', 'cash', 'payment', 'rate', 'price', 'stock', 'share', 'award', 'risk', 'security', 'bank', 'company',
+            'service', 'grant', 'agreement', 'proxy', 'loan', 'capital', 'asset', 'bonus', 'shareholder', 'income', 'financial', 'net', 'purchase',
+            'position', 'management', 'loss', 'salary', 'stockholder', 'due', 'business', 'transaction', 'govern', 'trading',
+            'tax', 'march', 'april', 'june', 'july']
+        weights = ae.get_weights()[0]
+        weights = unitmatrix(weights) # normalize
+        word_cloud(weights, vocab, queries, save_file=args.word_clouds)
+
+        print 'Saved word clouds file to %s' % args.word_clouds
 
     if args.sample_words:
         revocab = revdict(vocab)
@@ -140,6 +150,7 @@ def main():
     parser.add_argument('-o', '--output', type=str, required=True, help='path to the output doc codes file')
     parser.add_argument('-st', '--save_topics', type=str, help='path to the output topics file')
     parser.add_argument('-sw', '--sample_words', type=str, help='path to the output sample words file')
+    parser.add_argument('-wc', '--word_clouds', type=str, help='path to the output word clouds file')
     parser.add_argument('-tw', '--translate_words', action='store_true', help='translate words flag')
     parser.add_argument('-cd', '--calc_distinct', action='store_true', help='calc average pairwise angle')
     parser.add_argument('-lm', '--load_model', type=str, required=True, help='path to the trained model file')

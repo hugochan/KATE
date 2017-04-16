@@ -14,6 +14,9 @@ import numpy as np
 from autoencoder.preprocessing.preprocessing import load_corpus
 from autoencoder.utils.io_utils import dump_json, write_file
 from autoencoder.baseline.lda import train_lda, generate_doc_codes, load_model, show_topics, show_topics_prob, calc_pairwise_cosine, calc_pairwise_dev
+from autoencoder.testing.visualize import word_cloud
+from autoencoder.utils.op_utils import unitmatrix
+
 
 def train(args):
     corpus = load_corpus(args.corpus)
@@ -48,7 +51,8 @@ def train(args):
         print 'Saved doc codes file to %s and %s' % (args.output, args.output + '.val')
 
 def test(args):
-    docs = load_corpus(args.corpus)['docs']
+    corpus = load_corpus(args.corpus)
+    vocab, docs = corpus['vocab'], corpus['docs']
     doc_bow = {}
     for k in docs.keys():
         bows = []
@@ -60,6 +64,19 @@ def test(args):
     lda = load_model(args.load_model)
     generate_doc_codes(lda, doc_bow, args.output)
     print 'Saved doc codes file to %s' % args.output
+
+
+    if args.word_clouds:
+        queries = ['interest', 'trust', 'cash', 'payment', 'rate', 'price', 'stock', 'share', 'award', 'risk', 'security', 'bank', 'company',
+            'service', 'grant', 'agreement', 'proxy', 'loan', 'capital', 'asset', 'bonus', 'shareholder', 'income', 'financial', 'net', 'purchase',
+            'position', 'management', 'loss', 'salary', 'stockholder', 'due', 'business', 'transaction', 'govern', 'trading',
+            'tax', 'march', 'april', 'june', 'july']
+
+        weights = lda.state.get_lambda()
+        weights = unitmatrix(weights.T) # normalize
+        word_cloud(weights, vocab, queries, save_file=args.word_clouds)
+
+        print 'Saved word clouds file to %s' % args.word_clouds
 
     if args.save_topics:
         topics_prob = show_topics_prob(lda)
@@ -94,6 +111,7 @@ def main():
     parser.add_argument('-lm', '--load_model', type=str, help='path to the trained model')
     parser.add_argument('-o', '--output', type=str, help='path to the output doc codes file')
     parser.add_argument('-st', '--save_topics', type=str, help='path to the output topics file')
+    parser.add_argument('-wc', '--word_clouds', type=str, help='path to the output word clouds file')
     parser.add_argument('-cd', '--calc_distinct', action='store_true', help='calc average pairwise angle')
     args = parser.parse_args()
 
