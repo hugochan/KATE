@@ -15,6 +15,27 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy import interpolate
 
 
+def word_cloud(word_embedding_matrix, vocab, s, save_file='scatter.png'):
+    words = [(i, vocab[i]) for i in s]
+    model = TSNE(n_components=2, random_state=0)
+    #Note that the following line might use a good chunk of RAM
+    tsne_embedding = model.fit_transform(word_embedding_matrix)
+    words_vectors = tsne_embedding[np.array([item[1] for item in words])]
+
+    plt.subplots_adjust(bottom = 0.1)
+    plt.scatter(
+        words_vectors[:, 0], words_vectors[:, 1], marker='o', cmap=plt.get_cmap('Spectral'))
+
+    for label, x, y in zip(s, words_vectors[:, 0], words_vectors[:, 1]):
+        plt.annotate(
+            label,
+            xy=(x, y), xytext=(-20, 20),
+            textcoords='offset points', ha='right', va='bottom',
+            bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
+    plt.show()
+    # plt.savefig(save_file)
+
 def plot_tsne(doc_codes, doc_labels, classes_to_visual, save_file):
     markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
 
