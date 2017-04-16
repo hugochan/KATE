@@ -50,8 +50,9 @@ def plot_tsne(doc_codes, doc_labels, classes_to_visual, save_file):
     plt.show()
 
 
-def plot_tsne_3d(doc_codes, doc_labels, classes_to_visual, save_file):
+def plot_tsne_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_size=None, opaque=None):
     markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
+    plt.rc('legend',**{'fontsize':22})
     colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'w']
     C = len(classes_to_visual)
     while True:
@@ -85,7 +86,7 @@ def plot_tsne_3d(doc_codes, doc_labels, classes_to_visual, save_file):
     for i in range(C):
         cls = classes_to_visual[i]
         idx = np.array(labels) == cls
-        ax.scatter(X[idx, 0], X[idx, 1], X[idx, 2], c=colors[i], marker=markers[i], label=cls)
+        ax.scatter(X[idx, 0], X[idx, 1], X[idx, 2], c=colors[i], alpha=opaque[i], s=maker_size[i] if maker_size else None, marker=markers[i], label=cls)
         scatter_proxy.append(mpl.lines.Line2D([0],[0], linestyle="none", c=colors[i], marker=markers[i], label=cls))
     ax.legend(scatter_proxy, classes_to_visual, numpoints=1)
     plt.savefig(save_file)
@@ -134,7 +135,7 @@ def visualize_pca_2d(doc_codes, doc_labels, classes_to_visual, save_file):
     plt.savefig(save_file)
     plt.show()
 
-def visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, save_file):
+def visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_size=None, opaque=None):
     """
         Visualize the input data on a 2D PCA plot. Depending on the number of components,
         the plot will contain an X amount of subplots.
@@ -142,6 +143,7 @@ def visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, save_file):
         @param number_of_components: The number of principal components for the PCA plot.
     """
     markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
+    plt.rc('legend',**{'fontsize':24})
     colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'w']
     C = len(classes_to_visual)
     while True:
@@ -171,13 +173,13 @@ def visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, save_file):
     for i in range(C):
         cls = classes_to_visual[i]
         idx = np.array(labels) == cls
-        ax.scatter(X[idx, x_pc], X[idx, y_pc], X[idx, z_pc], c=colors[i], marker=markers[i], label=cls)
+        ax.scatter(X[idx, x_pc], X[idx, y_pc], X[idx, z_pc], c=colors[i], alpha=opaque[i], s=maker_size[i] if maker_size else None, marker=markers[i], label=cls)
         scatter_proxy.append(mpl.lines.Line2D([0],[0], linestyle="none", c=colors[i], marker=markers[i], label=cls))
     ax.legend(scatter_proxy, classes_to_visual, numpoints=1)
     # plt.title('Projected on the PCA components')
-    ax.set_xlabel('%sst component' % (x_pc + 1))
-    ax.set_ylabel('%snd component' % (y_pc + 1))
-    ax.set_zlabel('%srd component' % (z_pc + 1))
+    ax.set_xlabel('%sst component' % (x_pc + 1), fontsize=14)
+    ax.set_ylabel('%snd component' % (y_pc + 1), fontsize=14)
+    ax.set_zlabel('%srd component' % (z_pc + 1), fontsize=14)
     plt.savefig(save_file)
     plt.show()
 
