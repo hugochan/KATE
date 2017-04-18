@@ -46,7 +46,7 @@ def load_pickle(path_to_file):
 def dump_json(data, file):
     try:
         with open(file, 'w') as datafile:
-            json.dump(data, datafile)
+            json.dump(data, datafile, ensure_ascii=False)
     except Exception as e:
         raise e
 
