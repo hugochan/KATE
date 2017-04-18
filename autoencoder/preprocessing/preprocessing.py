@@ -95,7 +95,7 @@ def load_data(corpus_path, recursive=False, stem=False, stop_words=False):
                 text = fp.read().lower()
                 # words = [word for word in word_tokenizer.tokenize(text) if word not in cached_stop_words]
                 # remove punctuations, stopwords and *unnecessary digits*, stemming
-                words = tiny_tokenize(text, stem, cached_stop_words)
+                words = tiny_tokenize(text.decode('utf-8'), stem, cached_stop_words)
 
                 # doc_name = os.path.basename(filename)
                 parent_name, child_name = os.path.split(filename)
