@@ -80,15 +80,14 @@ def count_words(docs):
 
     return word_freq
 
-def load_data(corpus_path, recursive=False, stem=True):
+def load_data(corpus_path, recursive=False, stem=False, stop_words=False):
     word_freq = defaultdict(lambda: 0) # count the number of times a word appears in a corpus
     doc_word_freq = defaultdict(dict) # count the number of times a word appears in a doc
     files = get_all_files(corpus_path, recursive)
 
     # word_tokenizer = RegexpTokenizer(r'[a-zA-Z]+') # match only alphabet characters
     # cached_stop_words = init_stopwords()
-    cached_stop_words = []
-    stem = False
+    cached_stop_words = init_stopwords() if stop_words else []
 
     for filename in files:
         try:
