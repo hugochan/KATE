@@ -25,14 +25,13 @@ def word_cloud(word_embedding_matrix, vocab, s, save_file='scatter.png'):
     plt.subplots_adjust(bottom = 0.1)
     plt.scatter(
         words_vectors[:, 0], words_vectors[:, 1], marker='o', cmap=plt.get_cmap('Spectral'))
-
     for label, x, y in zip(s, words_vectors[:, 0], words_vectors[:, 1]):
         plt.annotate(
             label,
             xy=(x, y), xytext=(-20, 20),
-            textcoords='offset points', ha='right', va='bottom',
-            bbox=dict(boxstyle='round,pad=1.', fc='yellow', alpha=0.5),
-            arrowprops=dict(arrowstyle = '<-', connectionstyle='arc3,rad=0'))
+            textcoords='offset points', ha='left', va='bottom',
+            bbox=dict(boxstyle='round,pad=1.2', fc='yellow', alpha=0.5),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     plt.show()
     # plt.savefig(save_file)
 
@@ -194,15 +193,15 @@ def visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_
     for i in range(C):
         cls = classes_to_visual[i]
         idx = np.array(labels) == cls
-        ax.scatter(X[idx, x_pc], X[idx, y_pc], X[idx, z_pc], c=colors[i], alpha=opaque[i], s=maker_size[i] if maker_size else None, marker=markers[i], label=cls)
+        ax.scatter(X[idx, x_pc], X[idx, y_pc], X[idx, z_pc], c=colors[i], alpha=opaque[i] if opaque else 1, s=maker_size[i] if maker_size else 20, marker=markers[i], label=cls)
         scatter_proxy.append(mpl.lines.Line2D([0],[0], linestyle="none", c=colors[i], marker=markers[i], label=cls))
     ax.legend(scatter_proxy, classes_to_visual, numpoints=1)
     # plt.title('Projected on the PCA components')
     ax.set_xlabel('%sst component' % (x_pc + 1), fontsize=14)
     ax.set_ylabel('%snd component' % (y_pc + 1), fontsize=14)
     ax.set_zlabel('%srd component' % (z_pc + 1), fontsize=14)
-    plt.savefig(save_file)
     plt.show()
+    plt.savefig(save_file)
 
 def DBN_plot_tsne(doc_codes, doc_labels, classes_to_visual, save_file):
     markers = ["o", "v", "8", "s", "p", "*", "h", "H", "+", "x", "D"]
