@@ -46,9 +46,9 @@ def train(args):
 
     if args.output:
         doc_keys = np.array(doc_keys)
-        generate_doc_codes(lda, dict(zip(doc_keys[train_idx].tolist(), dbow_train)), args.output)
+        generate_doc_codes(lda, dict(zip(doc_keys[train_idx].tolist(), dbow_train)), args.output + '.train')
         generate_doc_codes(lda, dict(zip(doc_keys[val_idx].tolist(), dbow_val)), args.output + '.val')
-        print 'Saved doc codes file to %s and %s' % (args.output, args.output + '.val')
+        print 'Saved doc codes file to %s and %s' % (args.output + '.train', args.output + '.val')
 
 def test(args):
     corpus = load_corpus(args.corpus)
@@ -62,8 +62,8 @@ def test(args):
         del docs[k]
 
     lda = load_model(args.load_model)
-    generate_doc_codes(lda, doc_bow, args.output)
-    print 'Saved doc codes file to %s' % args.output
+    # generate_doc_codes(lda, doc_bow, args.output)
+    # print 'Saved doc codes file to %s' % args.output
 
 
     if args.word_clouds:
