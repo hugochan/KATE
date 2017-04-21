@@ -15,6 +15,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy import interpolate
 
 
+
 def word_cloud(word_embedding_matrix, vocab, s, save_file='scatter.png'):
     words = [(i, vocab[i]) for i in s]
     model = TSNE(n_components=2, random_state=0)
@@ -25,13 +26,14 @@ def word_cloud(word_embedding_matrix, vocab, s, save_file='scatter.png'):
     plt.subplots_adjust(bottom = 0.1)
     plt.scatter(
         words_vectors[:, 0], words_vectors[:, 1], marker='o', cmap=plt.get_cmap('Spectral'))
+
     for label, x, y in zip(s, words_vectors[:, 0], words_vectors[:, 1]):
         plt.annotate(
             label,
             xy=(x, y), xytext=(-20, 20),
-            textcoords='offset points', ha='left', va='bottom',
-            bbox=dict(boxstyle='round,pad=1.2', fc='yellow', alpha=0.5),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
+            textcoords='offset points', ha='right', va='bottom',
+            bbox=dict(boxstyle='round,pad=1.', fc='yellow', alpha=0.5),
+            arrowprops=dict(arrowstyle = '<-', connectionstyle='arc3,rad=0'))
     plt.show()
     # plt.savefig(save_file)
 
@@ -72,7 +74,7 @@ def plot_tsne(doc_codes, doc_labels, classes_to_visual, save_file):
 
 def plot_tsne_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_size=None, opaque=None):
     markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
-    plt.rc('legend',**{'fontsize':22})
+    plt.rc('legend',**{'fontsize':20})
     colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'w']
     C = len(classes_to_visual)
     while True:
@@ -96,9 +98,8 @@ def plot_tsne_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_size
     np.set_printoptions(suppress=True)
     X = tsne.fit_transform(X)
 
-    fig = plt.figure(figsize=(12, 12), facecolor='white')
+    fig = plt.figure(figsize=(12, 12π), facecolor='white')
     ax = fig.add_subplot(111, projection='3d')
-    mpl.rcParams['legend.fontsize'] = 15
 
     # The problem is that the legend function don't support the type returned by a 3D scatter.
     # So you have to create a "dummy plot" with the same characteristics and put those in the legend.
@@ -106,7 +107,7 @@ def plot_tsne_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_size
     for i in range(C):
         cls = classes_to_visual[i]
         idx = np.array(labels) == cls
-        ax.scatter(X[idx, 0], X[idx, 1], X[idx, 2], c=colors[i], alpha=opaque[i], s=maker_size[i] if maker_size else None, marker=markers[i], label=cls)
+        ax.scatter(X[idx, 0], X[idx, 1], X[idx, 2], c=colors[i], alpha=opaque[i] if opaque else 1, s=maker_size[i] if maker_size else 20, marker=markers[i], label=cls)
         scatter_proxy.append(mpl.lines.Line2D([0],[0], linestyle="none", c=colors[i], marker=markers[i], label=cls))
     ax.legend(scatter_proxy, classes_to_visual, numpoints=1)
     plt.savefig(save_file)
@@ -121,7 +122,7 @@ def visualize_pca_2d(doc_codes, doc_labels, classes_to_visual, save_file):
         @param number_of_components: The number of principal components for the PCA plot.
     """
     markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
-    plt.rc('legend',**{'fontsize':22})
+    plt.rc('legend',**{'fontsize':20})
     classes_to_visual = list(classes_to_visual)
     C = len(classes_to_visual)
     while True:
@@ -138,7 +139,7 @@ def visualize_pca_2d(doc_codes, doc_labels, classes_to_visual, save_file):
 
     X = np.r_[list(codes)]
     X = PCA(n_components=3).fit_transform(X)
-    plt.figure(figsize=(10, 10), facecolor='white')
+    plt.figure(figsize=(12, 12), facecolor='white')
 
     x_pc, y_pc = 0, 2
 
@@ -163,7 +164,7 @@ def visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_
         @param number_of_components: The number of principal components for the PCA plot.
     """
     markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
-    plt.rc('legend',**{'fontsize':24})
+    plt.rc('legend',**{'fontsize':20})
     colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'w']
     C = len(classes_to_visual)
     while True:
@@ -184,7 +185,6 @@ def visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_
     X = PCA(n_components=3).fit_transform(X)
     fig = plt.figure(figsize=(12, 12), facecolor='white')
     ax = fig.add_subplot(111, projection='3d')
-    mpl.rcParams['legend.fontsize'] = 15
     x_pc, y_pc, z_pc = 0, 1, 2
 
     # The problem is that the legend function don't support the type returned by a 3D scatter.
@@ -200,8 +200,8 @@ def visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_
     ax.set_xlabel('%sst component' % (x_pc + 1), fontsize=14)
     ax.set_ylabel('%snd component' % (y_pc + 1), fontsize=14)
     ax.set_zlabel('%srd component' % (z_pc + 1), fontsize=14)
-    plt.show()
     plt.savefig(save_file)
+    plt.show()
 
 def DBN_plot_tsne(doc_codes, doc_labels, classes_to_visual, save_file):
     markers = ["o", "v", "8", "s", "p", "*", "h", "H", "+", "x", "D"]
