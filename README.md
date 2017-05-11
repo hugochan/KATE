@@ -7,6 +7,7 @@ Code accompanying the paper ["KATE: K-Competitive Autoencoder for Text"](https:/
 This code is written in python. To use it you will need:
 - Python 2.7
 - A recent version of [Numpy](http://www.numpy.org)
+- A recent version of [NLTK](http://www.nltk.org)
 - [Tensorflow >= 1.0](https://www.tensorflow.org)
 - [Keras >=2.0](https://keras.io)
 
