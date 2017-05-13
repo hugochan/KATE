@@ -49,9 +49,9 @@ If you found this code useful, please cite the following paper:
 
 Yu Chen and Mohammed J. Zaki. **"KATE: K-competitive Autoencoders for Text."** *arXiv preprint arXiv:1705.02033 (2017).*
 
-    @article{yu2017kate,
-      title={KATE: K-competitive Autoencoders for Text},
-      author={Yu Chen and Mohammed J. Zaki},
+    @article{chen2017kate,
+      title={KATE: K-Competitive Autoencoder for Text},
+      author={Chen, Yu and Zaki, Mohammed J},
       journal={arXiv preprint arXiv:1705.02033},
       year={2017}
     }
