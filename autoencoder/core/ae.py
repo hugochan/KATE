@@ -35,7 +35,9 @@ class AutoEncoder(object):
         input_layer = Input(shape=(self.input_size,))
 
         # "encoded" is the encoded representation of the input
-        if self.ctype == 'kcomp':
+        if self.ctype == None:
+            act = 'sigmoid'
+        elif self.ctype == 'kcomp':
             act = 'tanh'
         elif self.ctype == 'ksparse':
             act = 'linear'
@@ -94,4 +96,4 @@ def save_ae_model(model, model_file):
     model.save(model_file)
 
 def load_ae_model(model_file):
-    return load_keras_model(model_file, custom_objects={"Dense_tied": Dense_tied, "KCompetitive": KCompetitive})
+    return load_keras_model(model_file, custom_objects={"KCompetitive": KCompetitive})

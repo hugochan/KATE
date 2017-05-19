@@ -67,9 +67,9 @@ def train(args):
         train_doc_codes = ae.encoder.predict(X_train)
         val_doc_codes = ae.encoder.predict(X_val)
         doc_keys = np.array(doc_keys)
-        dump_json(dict(zip(doc_keys[train_idx].tolist(), train_doc_codes.tolist())), args.output)
+        dump_json(dict(zip(doc_keys[train_idx].tolist(), train_doc_codes.tolist())), args.output + '.train')
         dump_json(dict(zip(doc_keys[val_idx].tolist(), val_doc_codes.tolist())), args.output + '.val')
-        print 'Saved doc codes file to %s and %s' % (args.output, args.output + '.val')
+        print 'Saved doc codes file to %s and %s' % (args.output + '.train', args.output + '.val')
 
 def main():
     parser = argparse.ArgumentParser()
@@ -79,8 +79,7 @@ def main():
     parser.add_argument('-bs', '--batch_size', type=int, default=100, help='batch size (default 100)')
     parser.add_argument('-nv', '--n_val', type=int, default=1000, help='size of validation set (default 1000)')
     parser.add_argument('-ck', '--comp_topk', type=int, help='competitive topk')
-    parser.add_argument('-ctype', '--ctype', type=str, help='competitive type (kcomp, ksparse, gated_comp)')
-    parser.add_argument('-lm', '--load_model', type=str, help='path to the pretrained model file for retraining')
+    parser.add_argument('-ctype', '--ctype', type=str, help='competitive type (kcomp, ksparse)')
     parser.add_argument('-sm', '--save_model', type=str, default='model', help='path to the output model')
     parser.add_argument('-contr', '--contractive', type=float, help='contractive lambda')
     parser.add_argument('--noise', type=str, help='noise type: gs for Gaussian noise, sp for salt-and-pepper or mn for masking noise')
