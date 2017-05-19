@@ -14,7 +14,7 @@ from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.layers.advanced_activations import PReLU
 import keras.backend as K
 
-from ..utils.keras_utils import Dense_tied, KCompetitive, KCompetitive
+from ..utils.keras_utils import Dense_tied, KCompetitive, KCompetitive, CustomModelCheckpoint
 from ..utils.io_utils import dump_json, load_json
 
 
@@ -29,12 +29,13 @@ class VarAutoEncoder(object):
 
         """
 
-    def __init__(self, input_size, dim, comp_topk=None, ctype=None, epsilon_std=1.0):
+    def __init__(self, input_size, dim, comp_topk=None, ctype=None, epsilon_std=1.0, save_model='best_model'):
         self.input_size = input_size
         self.dim = dim
         self.comp_topk = comp_topk
         self.ctype = ctype
         self.epsilon_std = epsilon_std
+        self.save_model = save_model
 
         self.build()
 
@@ -44,9 +45,9 @@ class VarAutoEncoder(object):
         hidden_layer1 = Dense(self.dim[0], kernel_initializer='glorot_normal', activation=act)
         h1 = hidden_layer1(input_layer)
 
-        if self.comp_topk and self.comp_topk[0] != -1:
-            print 'add k-competitive layer'
-            h1 = KCompetitive(self.comp_topk[0], self.ctype)(h1)
+        # if self.comp_topk and self.comp_topk[0] != -1:
+        #     print 'add k-competitive layer'
+        #     h1 = KCompetitive(self.comp_topk[0], self.ctype)(h1)
 
         self.z_mean = Dense(self.dim[1], kernel_initializer='glorot_normal')(h1)
         self.z_log_var = Dense(self.dim[1], kernel_initializer='glorot_normal')(h1)
@@ -85,7 +86,8 @@ class VarAutoEncoder(object):
                 batch_size=batch_size,
                 validation_data=(val_X[0], val_X[1]),
                 callbacks=[ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.01),
-                            EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto')
+                            EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto'),
+                            CustomModelCheckpoint(self.encoder, self.save_model, monitor='val_loss', save_best_only=True, mode='auto')
                         ]
                 )
 

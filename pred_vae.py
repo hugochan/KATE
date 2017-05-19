@@ -42,9 +42,9 @@ def test(args):
         del docs[k]
     X_docs = np.r_[X_docs]
 
-    vae = load_vae_model(VarAutoEncoder, args.load_arch, args.load_weights)
+    vae = load_vae_model(args.load_model)
 
-    doc_codes = vae.encoder.predict(X_docs)
+    doc_codes = vae.predict(X_docs)
     dump_json(dict(zip(doc_keys, doc_codes.tolist())), args.output)
     print 'Saved doc codes file to %s' % args.output
 
@@ -57,8 +57,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', type=str, required=True, help='path to the input corpus file')
     parser.add_argument('-o', '--output', type=str, required=True, help='path to the output doc codes file')
-    parser.add_argument('-la', '--load_arch', type=str, required=True, help='path to the trained arch file')
-    parser.add_argument('-lw', '--load_weights', type=str, required=True, help='path to the trained weights file')
+    parser.add_argument('-lm', '--load_model', type=str, required=True, help='path to the trained model file')
     # parser.add_argument('-st', '--save_topics', type=str, help='path to the output topics file')
     args = parser.parse_args()
 

@@ -40,14 +40,10 @@ def train(args):
 
     start = timeit.default_timer()
 
-    vae = VarAutoEncoder(n_vocab, args.n_dim, comp_topk=args.comp_topk, ctype=args.ctype)
+    vae = VarAutoEncoder(n_vocab, args.n_dim, comp_topk=args.comp_topk, ctype=args.ctype, save_model=args.save_model)
     vae.fit([X_train, X_train], [X_val, X_val], nb_epoch=args.n_epoch, batch_size=args.batch_size)
 
     print 'runtime: %ss' % (timeit.default_timer() - start)
-
-    if args.save_model:
-        save_vae_model(vae, args.save_model)
-        print 'Saved model file to %s' % args.save_model
 
 def main():
     parser = argparse.ArgumentParser()
