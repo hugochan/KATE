@@ -5,6 +5,7 @@ Created on Nov, 2016
 
 '''
 from __future__ import absolute_import
+import os
 import numpy as np
 from keras.layers import Dense
 from keras.callbacks import Callback
@@ -14,6 +15,8 @@ import tensorflow as tf
 from keras import initializers
 import warnings
 
+from ..testing.visualize import heatmap
+from .op_utils import unitmatrix
 
 def contractive_loss(model, lam=1e-4):
     def loss(y_true, y_pred):
@@ -135,6 +138,8 @@ class KCompetitive(Layer):
         # N_reset = tf.sparse_to_dense(full_indices2, tf.shape(x), tf.reshape(tf.add(values2, tf.abs(tmp)), [-1]), default_value=0., validate_indices=False)
 
         # 2)
+        # factor = 0.
+        # factor = 2. / topk
         factor = 6.26
         P_tmp = factor * tf.reduce_sum(P - P_reset, 1, keep_dims=True) # 6.26
         N_tmp = factor * tf.reduce_sum(-N - N_reset, 1, keep_dims=True)
@@ -340,3 +345,20 @@ class CustomModelCheckpoint(Callback):
                     model.save_weights(filepath, overwrite=True)
                 else:
                     model.save(filepath, overwrite=True)
+
+class VisualWeights(Callback):
+    def __init__(self, save_path, per_epoch=15):
+        super(VisualWeights, self).__init__()
+        self.per_epoch = per_epoch
+        self.filename, self.ext = os.path.splitext(save_path)
+
+    def on_epoch_end(self, epoch, logs=None):
+        """Called at the end of an epoch.
+        # Arguments
+            epoch: integer, index of epoch.
+            logs: dictionary of logs.
+        """
+        if epoch % self.per_epoch == 0:
+            weights = self.model.get_weights()[0]
+            weights = unitmatrix(weights, axis=0) # normalize
+            heatmap(weights.T, '%s_%s%s'%(self.filename, epoch, self.ext))

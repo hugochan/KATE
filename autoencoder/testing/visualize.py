@@ -15,6 +15,10 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy import interpolate
 
 
+def heatmap(data, save_file='heatmap.png'):
+    plt.pcolor(data, cmap=plt.cm.jet)
+    plt.savefig(save_file)
+    # plt.show()
 
 def word_cloud(word_embedding_matrix, vocab, s, save_file='scatter.png'):
     words = [(i, vocab[i]) for i in s]
@@ -32,15 +36,18 @@ def word_cloud(word_embedding_matrix, vocab, s, save_file='scatter.png'):
             label,
             xy=(x, y), xytext=(-20, 20),
             textcoords='offset points', ha='right', va='bottom',
-            bbox=dict(boxstyle='round,pad=1.', fc='yellow', alpha=0.5),
-            arrowprops=dict(arrowstyle = '<-', connectionstyle='arc3,rad=0'))
+            fontsize=20,
+            # bbox=dict(boxstyle='round,pad=1.', fc='yellow', alpha=0.5),
+            arrowprops=dict(arrowstyle = '<-', connectionstyle='arc3,rad=0')
+            )
     plt.show()
     # plt.savefig(save_file)
 
 def plot_tsne(doc_codes, doc_labels, classes_to_visual, save_file):
-    markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
-
-    classes_to_visual = list(classes_to_visual)
+    # markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
+    markers = ["o", "v", "8", "s", "p", "*", "h", "H", "+", "x", "D"]
+    plt.rc('legend',**{'fontsize':26})
+    classes_to_visual = list(set(classes_to_visual))
     C = len(classes_to_visual)
     while True:
         if C <= len(markers):
@@ -64,9 +71,9 @@ def plot_tsne(doc_codes, doc_labels, classes_to_visual, save_file):
     for c in classes_to_visual:
         idx = np.array(labels) == c
         # idx = get_indices(labels, c)
-        plt.plot(X[idx, 0], X[idx, 1], linestyle='None', alpha=0.6, marker=markers[class_ids[c]],
-                        markersize=6, label=c)
-    legend = plt.legend(loc='upper right', shadow=True)
+        plt.plot(X[idx, 0], X[idx, 1], linestyle='None', alpha=1, marker=markers[class_ids[c]],
+                        markersize=10, label=c)
+    legend = plt.legend(loc='lower left', shadow=True)
     # plt.title("tsne")
     plt.savefig(save_file)
     plt.show()
@@ -98,7 +105,7 @@ def plot_tsne_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_size
     np.set_printoptions(suppress=True)
     X = tsne.fit_transform(X)
 
-    fig = plt.figure(figsize=(12, 12π), facecolor='white')
+    fig = plt.figure(figsize=(12, 12), facecolor='white')
     ax = fig.add_subplot(111, projection='3d')
 
     # The problem is that the legend function don't support the type returned by a 3D scatter.
@@ -121,9 +128,10 @@ def visualize_pca_2d(doc_codes, doc_labels, classes_to_visual, save_file):
         @param doc_codes:
         @param number_of_components: The number of principal components for the PCA plot.
     """
-    markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
-    plt.rc('legend',**{'fontsize':20})
-    classes_to_visual = list(classes_to_visual)
+    # markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
+    markers = ["o", "v", "8", "s", "p", "*", "h", "H", "+", "x", "D"]
+    plt.rc('legend',**{'fontsize':28})
+    classes_to_visual = list(set(classes_to_visual))
     C = len(classes_to_visual)
     while True:
         if C <= len(markers):
@@ -139,15 +147,15 @@ def visualize_pca_2d(doc_codes, doc_labels, classes_to_visual, save_file):
 
     X = np.r_[list(codes)]
     X = PCA(n_components=3).fit_transform(X)
-    plt.figure(figsize=(12, 12), facecolor='white')
+    plt.figure(figsize=(10, 10), facecolor='white')
 
-    x_pc, y_pc = 0, 2
+    x_pc, y_pc = 1, 2
 
     for c in classes_to_visual:
         idx = np.array(labels) == c
         # idx = get_indices(labels, c)
-        plt.plot(X[idx, x_pc], X[idx, y_pc], linestyle='None', alpha=1.0, marker=markers[class_ids[c]],
-                        markersize=8, label=c)
+        plt.plot(X[idx, x_pc], X[idx, y_pc], linestyle='None', alpha=1, marker=markers[class_ids[c]],
+                        markersize=10, label=c)
         # plt.legend(c)
     # plt.title('Projected on the PCA components')
     # plt.xlabel('PC %s' % x_pc)
@@ -378,7 +386,7 @@ def get_indices(labels, c):
 
 def plot_info_retrieval(precisions, save_file):
     # markers = ["|", "D", "8", "v", "^", ">", "h", "H", "s", "*", "p", "d", "<"]
-    markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
+    markers = ["D", "p", 's', "*", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
     ticks = zip(*zip(*precisions)[1][0])[0]
     plt.xticks(range(len(ticks)), ticks)
     new_x = interpolate.interp1d(ticks, range(len(ticks)))(ticks)
@@ -431,6 +439,7 @@ if __name__ == '__main__':
     import sys
     # 20news_retrieval_128D
     precisions = [
+        ('VAE', [(0.001, 0.587348525080869), (0.002, 0.5651402500844888), (0.005, 0.5327151771489245), (0.01, 0.5014839340348453), (0.02, 0.4584269359288251), (0.05, 0.3658133556412997), (0.1, 0.2687164883998648), (0.2, 0.17739560251738207), (0.5, 0.09136516909151776), (1.0, 0.05050301672031405)]),
         ('DocNADE', [(0.001, 0.5718148022980761), (0.002, 0.5435414956790445), (0.005, 0.5074230900538642), (0.01, 0.4746133312027964), (0.02, 0.43102761550716634), (0.05, 0.3383512940656766), (0.1, 0.25088957318799715), (0.2, 0.16893256617330504), (0.5, 0.0898931631614369), (1.0, 0.05050301672031405)]),
         ('KATE', [(0.001, 0.5543982040264583), (0.002, 0.5213392555399969), (0.005, 0.4739445034519384), (0.01, 0.4347574243698827), (0.02, 0.3869114198299623), (0.05, 0.30403564261511706), (0.1, 0.2277761656366975), (0.2, 0.15699569840064684), (0.5, 0.08683891514289452), (1.0, 0.05050301672031405)]),
         ('DBN', [(0.001, 0.535038381692656), (0.002, 0.5077608265340592), (0.005, 0.465912108337758), (0.01, 0.4264154357337848), (0.02, 0.37657322856108594), (0.05, 0.29198182151435376), (0.1, 0.2197600288870639), (0.2, 0.15325609847145583), (0.5, 0.08605947016611057), (1.0, 0.05050301672031403)]),
@@ -442,7 +451,6 @@ if __name__ == '__main__':
         ('AE', [(0.001, 0.22827451359049142), (0.002, 0.18935571863080838), (0.005, 0.14794495865260598), (0.01, 0.12336861250406352), (0.02, 0.10404868431566056), (0.05, 0.08489066120247557), (0.1, 0.07413015988839661), (0.2, 0.06568426232571814), (0.5, 0.0563362391994616), (1.0, 0.05050301672031405)]),
         ('DAE', [(0.001, 0.2095785255636476), (0.002, 0.17031574373581437), (0.005, 0.1300285448751998), (0.01, 0.10855864535504914), (0.02, 0.09279581161675608), (0.05, 0.07767683840981233), (0.1, 0.06946348101328252), (0.2, 0.06284691358720304), (0.5, 0.05536974244871757), (1.0, 0.05050301672031405)]),
         ('Doc2Vec', [(0.001, 0.16486023270409583), (0.002, 0.1494834162120367), (0.005, 0.12679472346559542), (0.01, 0.11052195000447207), (0.02, 0.0953665540302444), (0.05, 0.07877845088096704), (0.1, 0.06914265711214816), (0.2, 0.06190158066520009), (0.5, 0.05536713733618202), (1.0, 0.05050301672031404)]),
-        ('VAE', [(0.001, 0.1625428474870794), (0.002, 0.129049389272433), (0.005, 0.09866000303467093), (0.01, 0.0835667523580887), (0.02, 0.07314337881088674), (0.05, 0.06373537802133396), (0.1, 0.05873448646810881), (0.2, 0.05491787941153268), (0.5, 0.05159197722972036), (1.0, 0.05050301672031405)]),
         ('NVDM', [(0.001, 0.05129628735576586), (0.002, 0.0513143919277744), (0.005, 0.0513784045216623), (0.01, 0.05057947447821584), (0.02, 0.04999729766565648), (0.05, 0.05015274063700316), (0.1, 0.050297158296132634), (0.2, 0.05053768818029844), (0.5, 0.050492220758456205), (1.0, 0.05050301672031404)])
         ]
 
@@ -478,8 +486,8 @@ if __name__ == '__main__':
     # plot(x, y, 'Number of topics', 'Classification accuracy', sys.argv[1])
 
     # Effect of alpha
-    # x = [0.1, 0.3, 1, 3, 6, 9, 12]
-    # y = [0.676, 0.706, 0.739, 0.738, 0.743, 0.746, 0.743]
+    # x = [0.0625, 0.3, 1, 3, 6, 9, 12]
+    # y = [0.711, 0.706, 0.739, 0.738, 0.743, 0.746, 0.743]
     # plot(x, y, r'$\alpha$', 'Classification accuracy', sys.argv[1])
 
     # # # Effect of k

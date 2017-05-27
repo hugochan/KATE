@@ -11,7 +11,7 @@ from keras.optimizers import Adadelta
 from keras.models import load_model as load_keras_model
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
-from ..utils.keras_utils import Dense_tied, KCompetitive, contractive_loss, CustomModelCheckpoint
+from ..utils.keras_utils import Dense_tied, KCompetitive, contractive_loss, CustomModelCheckpoint, VisualWeights
 
 
 class AutoEncoder(object):
@@ -86,7 +86,8 @@ class AutoEncoder(object):
                         callbacks=[
                                     ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.01),
                                     EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto'),
-                                    CustomModelCheckpoint(self.encoder, self.save_model, monitor='val_loss', save_best_only=True, mode='auto')
+                                    CustomModelCheckpoint(self.encoder, self.save_model, monitor='val_loss', save_best_only=True, mode='auto'),
+                                    VisualWeights('heatmap.png', per_epoch=15)
                         ]
                         )
 
