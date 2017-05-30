@@ -37,6 +37,9 @@ To predict on the test set, just run the following:
 ### PCA on the 20-D document vectors
 ![20news_doc_vec_pca](img/20news_doc_vec_pca.png "20news_doc_vec_pca")
 
+### TSNE on the 20-D document vectors
+![20news_doc_vec_tsne](img/20news_doc_vec_tsne.png "20news_doc_vec_tsne")
+
 ### Five nearest neighbors in the word representation space
 ![20news_word_vec](img/20news_word_vec.png "20news_word_vec")
 
