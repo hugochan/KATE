@@ -50,7 +50,7 @@ To predict on the test set, just run the following:
 
 If you found this code useful, please cite the following paper:
 
-Yu Chen and Mohammed J. Zaki. **"KATE: K-competitive Autoencoders for Text."** *arXiv preprint arXiv:1705.02033 (2017).*
+Yu Chen and Mohammed J. Zaki. **"KATE: K-competitive Autoencoder for Text."** *arXiv preprint arXiv:1705.02033 (2017).*
 
     @article{chen2017kate,
       title={KATE: K-Competitive Autoencoder for Text},
