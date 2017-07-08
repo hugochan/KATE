@@ -62,16 +62,21 @@ def test(args):
         del docs[k]
 
     lda = load_model(args.load_model)
-    # generate_doc_codes(lda, doc_bow, args.output)
-    # print 'Saved doc codes file to %s' % args.output
+    generate_doc_codes(lda, doc_bow, args.output)
+    print 'Saved doc codes file to %s' % args.output
 
 
     if args.word_clouds:
-        queries = ['interest', 'trust', 'cash', 'payment', 'rate', 'price', 'stock', 'share', 'award', 'risk', 'security', 'bank', 'company',
-            'service', 'grant', 'agreement', 'proxy', 'loan', 'capital', 'asset', 'bonus', 'shareholder', 'income', 'financial', 'net', 'purchase',
-            'position', 'management', 'loss', 'salary', 'stockholder', 'due', 'business', 'transaction', 'govern', 'trading',
-            'tax', 'march', 'april', 'june', 'july']
-
+        queries = ['interest', 'trust', 'cash', 'payment', 'rate', 'price', 'stock', 'share', 'award', 'risk', 'security', 'bank', 'company',\
+             'service', 'grant', 'agreement', 'proxy', 'loan', 'capital', 'asset', 'bonus', 'shareholder', 'income', 'financial', 'net', 'purchase',\
+             'position', 'management', 'loss', 'salary', 'stockholder', 'due', 'business', 'transaction', 'govern', 'trading',\
+             'tax', 'march', 'april', 'june', 'july']
+        # queries = ['interest', 'trust', 'cash', 'payment', 'rate', 'price', 'stock', 'share', \
+        #     'award', 'risk', 'security', 'bank', 'company', 'service', 'grant', 'agreement', \
+        #     'proxy', 'loan', 'capital', 'asset', 'bonus', 'shareholder', 'income', 'financial', \
+        #     'net', 'purchase', 'position', 'management', 'loss', 'salary', 'stockholder', 'due', \
+        #     'business', 'transaction', 'govern', 'trading', 'tax', 'three', 'four', 'five', \
+        #     'eleven', 'thirteen', 'sixteen', 'seventeen', 'eighteen']
         weights = lda.state.get_lambda()
         weights = unitmatrix(weights.T) # normalize
         word_cloud(weights, vocab, queries, save_file=args.word_clouds)

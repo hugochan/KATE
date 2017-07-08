@@ -87,7 +87,7 @@ class AutoEncoder(object):
                                     ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.01),
                                     EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=5, verbose=1, mode='auto'),
                                     CustomModelCheckpoint(self.encoder, self.save_model, monitor='val_loss', save_best_only=True, mode='auto'),
-                                    VisualWeights('heatmap.png', per_epoch=15)
+                                    VisualWeights('kcae_heatmap.png', per_epoch=5)
                         ]
                         )
 
