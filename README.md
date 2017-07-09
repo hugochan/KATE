@@ -34,7 +34,7 @@ To predict on the test set, just run the following:
 
 ## Architecture
 
-![kate_arch](img/kate_arch.png "kate_arch")
+<center><img src="img/kate_arch.png" width="600" height="400" /></center>
 
 
 ## Experiment results on 20 Newsgroups
@@ -49,7 +49,8 @@ To predict on the test set, just run the following:
 ![20news_word_vec](img/20news_word_vec.png "20news_word_vec")
 
 ### Extracted topics
-![20news_topics](img/20news_topics.png "20news_topics")
+
+<center><img src="img/20news_topics.png" width="600" height="500" /></center>
 
 ## Reference
 
