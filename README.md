@@ -32,6 +32,11 @@ To predict on the test set, just run the following:
     python pred.py -i [test_data] -lm [model_file] -o [output_doc_vec_file] -st [output_topics] -sw [output_sample_words] -wc [output_word_clouds]
 ```
 
+## Architecture
+
+![kate_arch](img/kate_arch.png "kate_arch")
+
+
 ## Experiment results on 20 Newsgroups
 
 ### PCA on the 20-D document vectors
@@ -50,11 +55,13 @@ To predict on the test set, just run the following:
 
 If you found this code useful, please cite the following paper:
 
-Yu Chen and Mohammed J. Zaki. **"KATE: K-competitive Autoencoder for Text."** *arXiv preprint arXiv:1705.02033 (2017).*
+Yu Chen and Mohammed J. Zaki. **"KATE: K-Competitive Autoencoder for Text."** *In Proceedings of the ACM SIGKDD International Conference on Data Mining and Knowledge Discovery. Aug 2017.*
 
-    @article{chen2017kate,
-      title={KATE: K-Competitive Autoencoder for Text},
-      author={Chen, Yu and Zaki, Mohammed J},
-      journal={arXiv preprint arXiv:1705.02033},
-      year={2017}
+    @inproceedings {chen2017kate,
+    author = { Yu Chen and Mohammed J. Zaki },
+    title = { KATE: K-Competitive Autoencoder for Text },
+    booktitle = { Proceedings of the ACM SIGKDD International Conference on Data Mining and Knowledge Discovery },
+    doi = { http://dx.doi.org/10.1145/3097983.3098017 },
+    year = { 2017 },
+    month = { Aug }
     }
