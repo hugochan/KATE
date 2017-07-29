@@ -10,12 +10,23 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import matplotlib as mpl
+mpl.use('TkAgg')
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator, MultipleLocator
 from mpl_toolkits.mplot3d import Axes3D
 from scipy import interpolate
 
 
+class neural_net_visualizer(object):
+    def __init__(self):
+        pass
+
+
+
 def heatmap(data, save_file='heatmap.png'):
+    ax = plt.figure().gca()
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.yaxis.set_major_locator(MultipleLocator(5))
     plt.pcolor(data, cmap=plt.cm.jet)
     plt.savefig(save_file)
     # plt.show()
@@ -46,7 +57,7 @@ def word_cloud(word_embedding_matrix, vocab, s, save_file='scatter.png'):
 def plot_tsne(doc_codes, doc_labels, classes_to_visual, save_file):
     # markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
     markers = ["o", "v", "8", "s", "p", "*", "h", "H", "+", "x", "D"]
-    plt.rc('legend',**{'fontsize':26})
+    plt.rc('legend',**{'fontsize':30})
     classes_to_visual = list(set(classes_to_visual))
     C = len(classes_to_visual)
     while True:
@@ -73,16 +84,17 @@ def plot_tsne(doc_codes, doc_labels, classes_to_visual, save_file):
         # idx = get_indices(labels, c)
         plt.plot(X[idx, 0], X[idx, 1], linestyle='None', alpha=1, marker=markers[class_ids[c]],
                         markersize=10, label=c)
-    legend = plt.legend(loc='lower left', shadow=True)
+    legend = plt.legend(loc='upper right', shadow=True)
     # plt.title("tsne")
-    plt.savefig(save_file)
+    # plt.savefig(save_file)
+    plt.savefig(save_file, format='eps', dpi=2000)
     plt.show()
 
 
 def plot_tsne_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_size=None, opaque=None):
     markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
     plt.rc('legend',**{'fontsize':20})
-    colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'w']
+    colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k']
     C = len(classes_to_visual)
     while True:
         if C <= len(markers):
@@ -105,7 +117,7 @@ def plot_tsne_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_size
     np.set_printoptions(suppress=True)
     X = tsne.fit_transform(X)
 
-    fig = plt.figure(figsize=(12, 12), facecolor='white')
+    fig = plt.figure(figsize=(10, 10), facecolor='white')
     ax = fig.add_subplot(111, projection='3d')
 
     # The problem is that the legend function don't support the type returned by a 3D scatter.
@@ -161,7 +173,8 @@ def visualize_pca_2d(doc_codes, doc_labels, classes_to_visual, save_file):
     # plt.xlabel('PC %s' % x_pc)
     # plt.ylabel('PC %s' % y_pc)
     legend = plt.legend(loc='upper right', shadow=True)
-    plt.savefig(save_file)
+    # plt.savefig(save_file)
+    plt.savefig(save_file, format='eps', dpi=2000)
     plt.show()
 
 def visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_size=None, opaque=None):
@@ -173,7 +186,7 @@ def visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_
     """
     markers = ["D", "p", "*", "s", "d", "8", "^", "H", "v", ">", "<", "h", "|"]
     plt.rc('legend',**{'fontsize':20})
-    colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'w']
+    colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k']
     C = len(classes_to_visual)
     while True:
         if C <= len(markers):
@@ -191,7 +204,7 @@ def visualize_pca_3d(doc_codes, doc_labels, classes_to_visual, save_file, maker_
 
     X = np.r_[list(codes)]
     X = PCA(n_components=3).fit_transform(X)
-    fig = plt.figure(figsize=(12, 12), facecolor='white')
+    fig = plt.figure(figsize=(10, 10), facecolor='white')
     ax = fig.add_subplot(111, projection='3d')
     x_pc, y_pc, z_pc = 0, 1, 2
 
