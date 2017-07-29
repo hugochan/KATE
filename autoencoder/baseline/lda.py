@@ -48,6 +48,7 @@ def show_topics_prob(model, n_words_per_topic=10):
 def calc_pairwise_cosine(model):
     n = model.num_topics
     weights = model.state.get_lambda()
+    weights = np.apply_along_axis(lambda x: x / x.sum(), 1, weights) # get dist.
     weights = unitmatrix(weights) # normalize
     score = []
     for i in range(n):
@@ -60,6 +61,7 @@ def calc_pairwise_dev(model):
     # the average squared deviation from 0 (90 degree)
     n = model.num_topics
     weights = model.state.get_lambda()
+    weights = np.apply_along_axis(lambda x: x / x.sum(), 1, weights) # get dist.
     weights = unitmatrix(weights) # normalize
     score = 0.
     for i in range(n):

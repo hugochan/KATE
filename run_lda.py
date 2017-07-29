@@ -70,16 +70,17 @@ def test(args):
         queries = ['interest', 'trust', 'cash', 'payment', 'rate', 'price', 'stock', 'share', 'award', 'risk', 'security', 'bank', 'company',\
              'service', 'grant', 'agreement', 'proxy', 'loan', 'capital', 'asset', 'bonus', 'shareholder', 'income', 'financial', 'net', 'purchase',\
              'position', 'management', 'loss', 'salary', 'stockholder', 'due', 'business', 'transaction', 'govern', 'trading',\
-             'tax', 'march', 'april', 'june', 'july']
+             'tax', 'march', 'june']
         # queries = ['interest', 'trust', 'cash', 'payment', 'rate', 'price', 'stock', 'share', \
-        #     'award', 'risk', 'security', 'bank', 'company', 'service', 'grant', 'agreement', \
-        #     'proxy', 'loan', 'capital', 'asset', 'bonus', 'shareholder', 'income', 'financial', \
-        #     'net', 'purchase', 'position', 'management', 'loss', 'salary', 'stockholder', 'due', \
-        #     'business', 'transaction', 'govern', 'trading', 'tax', 'three', 'four', 'five', \
-        #     'eleven', 'thirteen', 'sixteen', 'seventeen', 'eighteen']
+        #      'award', 'risk', 'security', 'bank', 'company', 'service', 'grant', 'agreement', \
+        #      'proxy', 'loan', 'capital', 'asset', 'bonus', 'shareholder', 'income', 'financial', \
+        #      'net', 'purchase', 'position', 'management', 'loss', 'salary', 'stockholder', 'due', \
+        #      'business', 'transaction', 'govern', 'trading', 'tax', 'three', 'four', 'five', \
+        #      'eleven', 'thirteen', 'fifteen', 'eighteen', 'twenty']
         weights = lda.state.get_lambda()
-        weights = unitmatrix(weights.T) # normalize
-        word_cloud(weights, vocab, queries, save_file=args.word_clouds)
+        weights = np.apply_along_axis(lambda x: x / x.sum(), 1, weights) # get dist.
+        # weights = unitmatrix(weights, axis=1) # normalize
+        word_cloud(weights.T, vocab, queries, save_file=args.word_clouds)
 
         print 'Saved word clouds file to %s' % args.word_clouds
 
