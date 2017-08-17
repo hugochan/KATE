@@ -102,7 +102,7 @@ class KCompetitive(Layer):
 
     #     return res
 
-    def k_comp_tanh(self, x, topk):
+    def k_comp_tanh(self, x, topk, factor=6.26):
         print 'run k_comp_tanh'
         dim = int(x.get_shape()[1])
         # batch_size = tf.to_float(tf.shape(x)[0])
@@ -140,7 +140,6 @@ class KCompetitive(Layer):
         # 2)
         # factor = 0.
         # factor = 2. / topk
-        factor = 6.26
         P_tmp = factor * tf.reduce_sum(P - P_reset, 1, keep_dims=True) # 6.26
         N_tmp = factor * tf.reduce_sum(-N - N_reset, 1, keep_dims=True)
         P_reset = tf.sparse_to_dense(full_indices, tf.shape(x), tf.reshape(tf.add(values, P_tmp), [-1]), default_value=0., validate_indices=False)
@@ -360,5 +359,7 @@ class VisualWeights(Callback):
         """
         if epoch % self.per_epoch == 0:
             weights = self.model.get_weights()[0]
+            # weights /= np.max(np.abs(weights))
             weights = unitmatrix(weights, axis=0) # normalize
+            # weights[np.abs(weights) < 1e-2] = 0
             heatmap(weights.T, '%s_%s%s'%(self.filename, epoch, self.ext))
