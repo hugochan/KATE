@@ -67,6 +67,16 @@ To predict on the test set, just run the following:
 
 <center><img src="img/20news_topics.png" width="600" height="500" /></center>
 
+### Text classification results on 20 Newsgroups
+
+<center><img src="img/20news_doc_clf.png" width="300" height="400" /></center>
+
+
+### Visualization of the normalized topic-word weight matrices of KATE & LDA (KATE learns distinctive patterns)
+
+<center><img src="img/vis_pattern.png" width="900" height="350" /></center>
+
+
 ## Reference
 
 If you found this code useful, please cite the following paper:
