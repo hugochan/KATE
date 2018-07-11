@@ -8,8 +8,8 @@ This code is written in python. To use it you will need:
 - Python 2.7
 - A recent version of [Numpy](http://www.numpy.org)
 - A recent version of [NLTK](http://www.nltk.org)
-- [Tensorflow >= 1.0](https://www.tensorflow.org)
-- [Keras >=2.0](https://keras.io)
+- [Tensorflow = 1.2.1](https://www.tensorflow.org)
+- [Keras = 2.0.6](https://keras.io)
 
 ## Getting started
 
@@ -31,6 +31,21 @@ To predict on the test set, just run the following:
 ```bash
     python pred.py -i [test_data] -lm [model_file] -o [output_doc_vec_file] -st [output_topics] -sw [output_sample_words] -wc [output_word_clouds]
 ```
+
+## Notes
+
+1) In order to apply the KATE model to your own dataset, you will need to preprocess the dataset on your own. Basically, prepare the vocabulary and Bag-of-Words representation of each document.
+
+2) The KATE model learns vector representations of words (which are in the vocabulary) as well as documents in an unsupervised manner. It can also extracts topics from corpus. Document labels will be needed only if you want to for example train a document classifier based on learned document vectors.
+
+## FAQ
+
+
+1) KeyError when plotting word clouds
+
+  Make sure the words belong to the vocabulary. See [here](https://github.com/hugochan/KATE/issues/9).
+
+
 
 ## Architecture
 

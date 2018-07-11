@@ -8,6 +8,7 @@ from __future__ import absolute_import
 import os
 import re
 import string
+import codecs
 import numpy as np
 from collections import defaultdict
 from nltk.tokenize import wordpunct_tokenize
@@ -91,7 +92,8 @@ def load_data(corpus_path, recursive=False, stem=False, stop_words=False):
 
     for filename in files:
         try:
-            with open(filename, 'r') as fp:
+            # with open(filename, 'r') as fp:
+            with codecs.open(filename, 'r', encoding='UTF-8', errors='ignore') as fp:
                 text = fp.read().lower()
                 # words = [word for word in word_tokenizer.tokenize(text) if word not in cached_stop_words]
                 # remove punctuations, stopwords and *unnecessary digits*, stemming
