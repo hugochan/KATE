@@ -109,3 +109,16 @@ Yu Chen and Mohammed J. Zaki. **"KATE: K-Competitive Autoencoder for Text."** *I
     year = { 2017 },
     month = { Aug }
     }
+
+Other research papers that applied the KATE model:
+
+Chen, Yu, Rhaad M. Rabbani, Aparna Gupta, and Mohammed J. Zaki. "Comparative text analytics via topic modeling in banking." In 2017 IEEE Symposium Series on Computational Intelligence (SSCI), pp. 1-8. IEEE, 2017.
+
+	@inproceedings{chen2017comparative,
+	  title={Comparative text analytics via topic modeling in banking},
+	  author={Chen, Yu and Rabbani, Rhaad M and Gupta, Aparna and Zaki, Mohammed J},
+	  booktitle={2017 IEEE Symposium Series on Computational Intelligence (SSCI)},
+	  pages={1--8},
+	  year={2017},
+	  organization={IEEE}
+	}
