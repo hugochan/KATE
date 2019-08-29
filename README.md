@@ -1,7 +1,7 @@
 KATE: K-Competitive Autoencoder for Text
 ===============
 
-Code accompanying the paper ["KATE: K-Competitive Autoencoder for Text"](https://arxiv.org/abs/1705.02033)
+Code accompanying the KDD2017 paper ["KATE: K-Competitive Autoencoder for Text"](https://arxiv.org/abs/1705.02033)
 
 ## Prerequisites
 This code is written in python. To use it you will need:
@@ -18,7 +18,10 @@ To preprocess the corpus, e.g., 20 Newsgroups, just run the following:
 ```bash
     python construct_20news.py -train [train_dir] -test [test_dir] -o [out_dir] -threshold [word_freq_threshold] -topn [top_n_words]
 ```
-It outputs 4 json files under the [out_dir] directory: train_data, train_label, test_data and test_label.
+It outputs 4 json files under the [out_dir] directory: train\_data, train\_label, test\_data and test\_label.
+You can <b>download the preprocessed data</b> we used in our experiments [here](http://academic.hugochan.net/download/KATE-preprocessed-data.zip).
+
+
 
 To train the KATE model, just run the following:
 
@@ -31,6 +34,21 @@ To predict on the test set, just run the following:
 ```bash
     python pred.py -i [test_data] -lm [model_file] -o [output_doc_vec_file] -st [output_topics] -sw [output_sample_words] -wc [output_word_clouds]
 ```
+
+
+To train a simple classifier, just run the following:
+
+```bash
+  python run_classifier.py [train_doc_codes] [train_doc_labels] [test_doc_codes] [test_doc_labels] -nv [num_validation] -ne [num_epochs] -bs [batch_size]
+```
+
+To train baseline methods, e.g., VAE, just run the following:
+
+```bash
+     python train_vae.py -i [train_data] -nd [num of dimensions] -ne [num_epochs] -bs [batch_size] -nv [num_validation] -sm [model_file]
+```
+
+
 
 ## Notes
 
