@@ -1,7 +1,7 @@
 KATE: K-Competitive Autoencoder for Text
 ===============
 
-Code accompanying the KDD2017 paper ["KATE: K-Competitive Autoencoder for Text"](https://arxiv.org/abs/1705.02033)
+Code & data accompanying the KDD2017 paper ["KATE: K-Competitive Autoencoder for Text"](https://arxiv.org/abs/1705.02033)
 
 ## Prerequisites
 This code is written in python. To use it you will need:
