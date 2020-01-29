@@ -8,7 +8,7 @@ This code is written in python. To use it you will need:
 - Python 2.7
 - A recent version of [Numpy](http://www.numpy.org)
 - A recent version of [NLTK](http://www.nltk.org)
-- [Tensorflow = 1.2.1](https://www.tensorflow.org)
+- [Tensorflow = 1.15.2](https://www.tensorflow.org)
 - [Keras = 2.0.6](https://keras.io)
 
 ## Getting started
