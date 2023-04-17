@@ -1,7 +1,7 @@
 h5py==2.9.0
 Keras==2.0.6
 matplotlib==2.2.3
-nltk==3.4.5
+nltk==3.6.6
 numpy==1.16.5
 scikit-learn==0.20.3
 tensorflow==1.15.2
